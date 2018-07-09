@@ -1,5 +1,5 @@
 - Start Date: 2018-07-09
-- RFC PR: (leave this empty)
+- RFC PR: https://github.com/CppMicroServices/rfcs/pull/1
 - CppMicroServices Issue: https://github.com/CppMicroServices/CppMicroServices/issues/54
 
 # Declarative Services Design Document
