@@ -45,7 +45,9 @@ The proposal introduces a function local static that gets initialized by demangl
 
 ## Drawbacks
 
-Because the demangled names are cached, it results in extra storage to store one std::string entry for each T. However, this slight increase in storage pales in comparison to the benefits of the speed-up. 
+Because the demangled names are cached, a new static std::string that represents the interface name gets statically initialized each time the framework encounters a new T (either through RegisterService<T> or GetServiceReference<T>). Corollary: No storage needed for an already encountered T.
+
+However, this slight increase in storage pales in comparison to the benefits of the speed-up. 
 
 ## Alternatives
 
