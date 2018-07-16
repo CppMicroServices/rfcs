@@ -26,20 +26,11 @@ The proposal introduces a function local static that gets initialized by demangl
 `File:ServiceInterface.h`
 
 ```diff
-+template <typename T> struct Demangle
-+{
-+  std::string const& operator()() const
-+  {
-+    static const std::string name = cppmicroservices::detail::GetDemangledName(typeid(T));
-+    return name;
-+  }
-+};
-+
- /// \cond
  template<class T> std::string us_service_interface_iid()
  {
 -  return cppmicroservices::detail::GetDemangledName(typeid(T));
-+  return Demangle<T>()();
++  static const std::string name = cppmicroservices::detail::GetDemangledName(typeid(T));
++  return name;
  }
 ```
 
