@@ -6,7 +6,7 @@
 
 ## Motivation
 
-Using AtCompoundKey with non-existent keys produces an exception. If the API is used extensively, the application performace is degraded as reported by a team at Mathworks Inc. Users prefer not to pay for the cost of exception handling in case a compound key is not found in the AnyMap.
+Using AtCompoundKey with non-existent keys produces an exception. If the API is used extensively, the application performace is degraded as reported by a user. Users prefer not to pay for the cost of exception handling in case a compound key is not found in the AnyMap.
 
 ## Description of the Problem
 
@@ -78,7 +78,7 @@ rapidjson::Document Bundle::GetHeaders();
 ### Pros
 * Users can use the JSON object to write their custom parsing functions or pass around JSON objects in their code 
 
-###Cons
+### Cons
 * Users have to parse through the JSON tree to retrieve the values. 
 * The team currently using AtCompoundKey does not like this option. They do not want to deal with the any_cast at each level of the map
 
