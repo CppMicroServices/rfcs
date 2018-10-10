@@ -6,11 +6,11 @@
 
 ## Motivation
 
-Using AtCoumpoundKey with non-existent keys produces an exception. If the API is used extensively, the application performace is degraded as reported by a team at Mathworks Inc. Users prefer not to pay for the cost of exception handling in case a compound key is not found in the AnyMap.
+Using AtCompoundKey with non-existent keys produces an exception. If the API is used extensively, the application performace is degraded as reported by a team at Mathworks Inc. Users prefer not to pay for the cost of exception handling in case a compound key is not found in the AnyMap.
 
 ## Description of the Problem
 
-AnyMap provides a convinience API to retrieve objects from the map using compound keys with dot notation. The API is very nifty and saves users from writing redundant code to parse through the nested maps. However, the performance of the error path is significantly higher than for the happy path in this API. This have resulted in performace degradation in some use cases. The performace hit is due to C++ exception handling mechanism. Although AtCompoundKey is similar to the STL map's `at` API, STL maps have other methods such as the `find` which can be used to efficiently access an element in the map without having to deal with the exceptions.
+AnyMap provides a convenience API to retrieve objects from the map using compound keys with dot notation. The API is very nifty and saves users from writing redundant code to parse through the nested maps. However, the performance of the error path is significantly higher than for the happy path in this API. This have resulted in performace degradation in some use cases. The performace hit is due to C++ exception handling mechanism. Although AtCompoundKey is similar to the STL map's `at` API, STL maps have other methods such as the `find` which can be used to efficiently access an element in the map without having to deal with the exceptions.
 
 The following graph shows the difference between the performance of happy path and error path in AtCompoundKey API
 
@@ -55,7 +55,7 @@ Any AtCompoundKey(const std::string& key);
 Add an overload with the following signature:
 
 ```
-Any AtCompoundKey(const std::string& key, Any&& defaultvalue) const;
+Any AtCompoundKey(const std::string& key, Any defaultvalue) const;
 ```
 
 Return the user provided default value if the key is not found in the map.
@@ -66,7 +66,7 @@ Return the user provided default value if the key is not found in the map.
 
 ### Cons
 * User has to provide an extra argument for the default value.
-* The information regarding the error conditions is lost. However, do the users really care about the information is a puzzle.
+* The information regarding the error conditions is lost. However, if the users care about the error conditions, they can use the overload version that throws.
 
 ## Option 3 - Expose the bundle's metadata as a third party JSON object.
 Remove the `AtCompoundKey` API and expose the bundle's metadata in the form of an object of a JSON parsing library. E.g, rapidjson::Document from the RapidJson library
