@@ -25,35 +25,16 @@ Remove the non-const version of the API and retain just the const version. Retur
 
 <strike>Any& AtCompoundkey(const std::string& key);</strike>
 
-`const Any& AtCompoundKey(const std:;string&key) const;`
+`const Any& AtCompoundKey(const std::string& key) const;`
 
 ### Pros
-* Error path is much improved, almost equal to the happy path if not better
+* Addresses the performance problem. The happy path and the error path have similar performance. 
 
 ### Cons
 * Happy path has a slight performance decrease due to the use of 'find' API instead of the 'at' API
 * Although the API returns a const reference, the user could add back a non-const version by const_cast'ing the returned ref, which will break every subsequent call. Infact the current non-const API does exactly this, which is ikky.
 * The information regarding the error conditions is lost. However, do the users really care about the information is a puzzle.
 * If the BundleManifest class is modified to handle "null" values in the manifest, this API has to change.  
-
-## Option 1.1 - Add an overload with a default value parameter
-Add an overload with the following signature:
-
-```
-const Any& AtCompoundKey(const std::string& key, const Any& defaultvalue) const;
-```
-
-Return the user provided default value if the key is not found in the map.
-
-### Pros
-* Addresses the performance problem. The happy path and the error path have similar performance. 
-* Happy path performance does not degrade. 
-* Backwards compatible. Since this API has different number of arguments, this API can be added as an overload set. This allows us to let users choose the right API based on their performance and error handling requirements. Also, lets us deprecate the old one if no use-cases exist.
-
-### Cons
-* User has to provide an extra argument for the default value.
-* The information regarding the error conditions is lost. However, do the users really care about the information is a puzzle.
-* The default value passed to the API must not be an inlined temporary since we return it by reference.
 
 ## Option 2 - Modify the current API to return an Any object by value
 Return an empty `Any` object if the key is not found
@@ -64,13 +45,28 @@ Any AtCompoundKey(const std::string& key);
 
 ### Pros
 * Addresses the performance problem. The happy path and the error path have similar performance. 
-* Happy path performance does not degrade
 
 ###Cons
-* Not backwards compatible.
 * Returning by value results in copies of the returned object which could be costly, specially if this API is used to retrieve intermediate maps of larger size.
 * It is not clear how a null value from a manifest file is treated. specifying "null" is legal in JSON. Current implementation of bundle metadata parser ignores the entries with null value. However, we cannot assume this will not change in the future.
 * The information regarding he error conditions is lost. However, do the users really care about the information is a puzzle.
+
+## Option 2.1 (Preferred) - Add an overload with a default value parameter 
+Add an overload with the following signature:
+
+```
+Any AtCompoundKey(const std::string& key, Any&& defaultvalue) const;
+```
+
+Return the user provided default value if the key is not found in the map.
+
+### Pros
+* Addresses the performance problem. The happy path and the error path have similar performance. 
+* Backwards compatible. Since this API has different number of arguments, this API can be added as an overload set. This allows us to let users choose the right API based on their performance and error handling requirements. Also, lets us deprecate the old one if no use-cases exist.
+
+### Cons
+* User has to provide an extra argument for the default value.
+* The information regarding the error conditions is lost. However, do the users really care about the information is a puzzle.
 
 ## Option 3 - Expose the bundle's metadata as a third party JSON object.
 Remove the `AtCompoundKey` API and expose the bundle's metadata in the form of an object of a JSON parsing library. E.g, rapidjson::Document from the RapidJson library
@@ -84,7 +80,7 @@ rapidjson::Document Bundle::GetHeaders();
 
 ###Cons
 * Users have to parse through the JSON tree to retrieve the values. 
-* No user data to support this strategy. We do not know if users would appreciate this option.
+* The team currently using AtCompoundKey does not like this option. They do not want to deal with the any_cast at each level of the map
 
 ## Option 4
 
