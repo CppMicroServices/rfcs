@@ -6,11 +6,13 @@
 
 ## Motivation
 
-Using AtCompoundKey with non-existent keys produces an exception. If the API is used extensively, the application performace is degraded as reported by a user. Users prefer not to pay for the cost of exception handling in case a compound key is not found in the AnyMap.
+Using AtCompoundKey with non-existent keys produces an exception. If the API is used extensively (in a tight loop or called multiple times), the application performace is degraded as reported by a user. Users prefer not to pay for the cost of exception handling in case a compound key is not found in the AnyMap.
+
+Consider the use case where a user has thousands of bundles with custom metadata. The metadata in all the bundles is not uniform. i.e, some bundles may have some properties while others don't. If the AtCompoundKey API is applied for each of the bundles in the installed bundle list, there are a lot of exceptions raised from the API. The user code has to handle the exceptions which turns out to be expensive.
 
 ## Description of the Problem
 
-AnyMap provides a convenience API to retrieve objects from the map using compound keys with dot notation. The API is very nifty and saves users from writing redundant code to parse through the nested maps. However, the performance of the error path is significantly higher than for the happy path in this API. This have resulted in performace degradation in some use cases. The performace hit is due to C++ exception handling mechanism. Although AtCompoundKey is similar to the STL map's `at` API, STL maps have other methods such as the `find` which can be used to efficiently access an element in the map without having to deal with the exceptions.
+AnyMap provides a convenience API to retrieve objects from the map using compound keys with dot notation. The API is very nifty and saves users from writing redundant code to parse through the nested maps. However, the performance of the error path is significantly higher than for the happy path in this API. This has resulted in performace degradation in some use cases. The performace hit is due to the C++ exception handling mechanism. Although AtCompoundKey is similar to the STL map's `at` API, STL maps have other methods such as the `find` which can be used to efficiently access an element in the map without having to deal with the exceptions.
 
 The following graph shows the difference between the performance of happy path and error path in AtCompoundKey API
 
@@ -46,10 +48,10 @@ Any AtCompoundKey(const std::string& key);
 ### Pros
 * Addresses the performance problem. The happy path and the error path have similar performance. 
 
-###Cons
+### Cons
 * Returning by value results in copies of the returned object which could be costly, specially if this API is used to retrieve intermediate maps of larger size.
 * It is not clear how a null value from a manifest file is treated. specifying "null" is legal in JSON. Current implementation of bundle metadata parser ignores the entries with null value. However, we cannot assume this will not change in the future.
-* The information regarding he error conditions is lost. However, do the users really care about the information is a puzzle.
+* The information regarding the error conditions is lost.
 
 ## Option 2.1 (Preferred) - Add an overload with a default value parameter 
 Add an overload with the following signature:
@@ -65,7 +67,6 @@ Return the user provided default value if the key is not found in the map.
 * Backwards compatible. Since this API has different number of arguments, this API can be added as an overload set. This allows us to let users choose the right API based on their performance and error handling requirements. Also, lets us deprecate the old one if no use-cases exist.
 
 ### Cons
-* User has to provide an extra argument for the default value.
 * The information regarding the error conditions is lost. However, if the users care about the error conditions, they can use the overload version that throws.
 
 ## Option 3 - Expose the bundle's metadata as a third party JSON object.
@@ -98,7 +99,8 @@ if(map.KeyExists("com.foo.bar"))
 * Backwards compatible
 
 ### Cons
-* Users have to call this API before calling the existing AtCompoundKey API. The resulting code would require parsing the dot notation key twice which may not be desirable.
+* The extra API call (to KeyExists) clients need to make, which is not as simple as having to make one API call.
+* Possible performance hit from parsing a string and traversing the map twice.
 
 
 ## Performance Comparison of Options
