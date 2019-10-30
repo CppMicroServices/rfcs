@@ -30,7 +30,7 @@ Adding to that, this functionality to load bundles/shared objects is currently i
 
 During the application run, these different callsites may become out of sync as CppMicroServices and DS are maintained.
 
-Given this it seems appropriate to have a new Bundle::LoadSymbols API for CppMicroServices library.
+Given this it seems appropriate to have a new Bundle::GetSymbol API for CppMicroServices library.
 
 ## Requirements
 
@@ -42,13 +42,13 @@ For the specific use case of DS (and similar extender clients), have an API in t
 
 ## Detailed design
 
-Bundle::GetSymbols() API will be declared in the file CppMicroServices/framework/include/cppmicroservices/Bundle.h as below
+Bundle::GetSymbol() API will be declared in the file CppMicroServices/framework/include/cppmicroservices/Bundle.h as below
 The output of above API will be in the function pointer type supplied by the API user.
 
 ```
 
 /**
-* Retrieves the bundle symbol(s) using platform APIs and returns a function pointer associated with the bundle object
+* Retrieves the bundle symbol using platform APIs and returns a function pointer associated with the bundle object
 * It uses following OS APIs to achieve the same
 *
 * On POSIX   : dlopen/dlsym
@@ -58,10 +58,11 @@ The output of above API will be in the function pointer type supplied by the API
 *
 * @throws std::runtime_error if this bundle is not initialized correctly, i.e if dlopen or LoadLibraryW fails
 *
+* @post The library associated with the bundle gets loaded into the process if the API did not throw
 */
 
 template<typename T>
-T GetSymbols(const std::string& symname);
+T GetSymbol(const std::string& symname);
 
 ```
 As mentioned above, the API will call the platform APIs to open the shared objects.It will supply the name of the bundle using Bundle class's GetLocation() function to these APIs.
@@ -76,8 +77,8 @@ Void SomeDeclarativeServiceUser(const cppmicroservices::Bundle& bd)
     try
     {
         
-        auto handleCon = bd.GetSymbols<ComponentInstance*(*)(void)>(constructor_name);
-        auto handleDes = bd.GetSymbols<void(*)(ComponentInstance*)>(destructor_name);
+        auto handleCon = bd.GetSymbol<ComponentInstance*(*)(void)>(constructor_name);
+        auto handleDes = bd.GetSymbol<void(*)(ComponentInstance*)>(destructor_name);
 
         // Do stuff with the handleCon and handleDes
     }
@@ -91,8 +92,8 @@ Void SomeDeclarativeServiceUser(const cppmicroservices::Bundle& bd)
 ## How we teach this
 
 If the proposal is accepted, the CppMicroServices doxygen guide will be modified to reflect the new functionality.
-GetSymbols API function will be specific to extenders of Cppmicroservices such as DS and is not catered for every client of CppMicroServices.
-Clients except for DS must follow the usual bundle lifetime (install => start => stop => uninstall) and avoid using GetSymbols API.
+GetSymbol API function will be specific to extenders of Cppmicroservices such as DS and is not catered for every client of CppMicroServices.
+Clients except for DS must follow the usual bundle lifetime (install => start => stop => uninstall) and avoid using GetSymbol API.
 
 ## Drawbacks
 
