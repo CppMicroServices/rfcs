@@ -36,39 +36,35 @@ Given this it seems appropriate to have a new Bundle::GetSymbol API for CppMicro
 
 For the specific use case of DS (and similar extender clients), have an API in the CppMicroServices that
 
-1) loads shared library without exposing OS specific data types
-2) resolves symbols in a Bundle's shared library with the intent of calling exported functions
-3) does not require the users of this API to write any OS specific code e.g DS would only call bundle.GetSymbol() instead of using native OS calls
+1) fetches a resolved symbols in a Bundle's shared library with the intent of calling exported functions
+2) does not require the users of this API to write any OS specific code e.g DS would only call bundle.GetSymbol() instead of using native OS calls
 
 ## Detailed design
 
 Bundle::GetSymbol() API will be declared in the file CppMicroServices/framework/include/cppmicroservices/Bundle.h as below
-The output of above API will be in the function pointer type supplied by the API user.
+The output of the API will be the function pointer type supplied by the API user.
 
 ```
 
 /**
-* Retrieves the bundle symbol using platform APIs and returns a function pointer associated with the bundle object
-* It uses following OS APIs to achieve the same
-*
-* On POSIX   : dlopen/dlsym
-* On Windows : LoadLibraryW/GetProcAddress
+* Retrieves the resolved symbol from bundle shared library and returns a function pointer associated with it
 * 
-* @return A function pointer symbols of type T supplied by the user
+* @return A function pointer symbols of type T supplied by the user or nullptr if the library is not loaded
+* 
+* @throws std::runtime_error if this symbol fetched is nullptr
 *
-* @throws std::runtime_error if this bundle is not initialized correctly, i.e if dlopen or LoadLibraryW fails
-*
-* @post The library associated with the bundle gets loaded into the process if the API did not throw
+* @post The symbol(s) associated with the bundle gets fetched if the library is loaded
 */
 
 template<typename T>
 T GetSymbol(const std::string& symname);
 
 ```
-As mentioned above, the API will call the platform APIs to open the shared objects.It will supply the name of the bundle using Bundle class's GetLocation() function to these APIs.
-If these platform APIs fails, it will thrown an exception with relevant error information e.g. error code.
+This API will interally call SharedLibrary class's API to retrieve handle of bundle's shared library. 
+It will then supply the name and type of the symbol and fetch it from bundle class's utility functions.
+If the function pointer returned is nullptr, it will throw an exception with appropriate message.
 
-Once the bundle is opened, it will fetch the required symbols e.g. in case of DS, it will be the symbols of extern "C" functions containing constructor/destructors calls to services.
+For ex. in case of DS, it will be the symbols of extern "C" functions containing constructor/destructors calls to services.
 
 A typical usage workflow will be as below
 ```
