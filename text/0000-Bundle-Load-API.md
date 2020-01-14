@@ -38,6 +38,7 @@ For the specific use case of DS (and similar extender clients), have an API in t
 
 1) fetches a resolved symbols in a Bundle's shared library with the intent of calling exported functions
 2) does not require the users of this API to write any OS specific code e.g DS would only call bundle.GetSymbol() instead of using native OS calls
+3) does not change the bundle lifecyle state when a symbol is retrieved
 
 ## Detailed design
 
@@ -51,18 +52,26 @@ The output of the API will be the function pointer type supplied by the API user
 * 
 * @return A function pointer symbols of type T supplied by the user or nullptr if the library is not loaded
 * 
-* @throws std::runtime_error if this symbol fetched is nullptr
+* @throws std::runtime_error if the bundle is not started and active
+* @throws std::runtime_error if the symbol fetched is nullptr
+*
+* @pre  Bundle is already started and active
 *
 * @post The symbol(s) associated with the bundle gets fetched if the library is loaded
+* @post If the symbol does not exist, the API returns nullptr 
 */
 
 template<typename T>
 T GetSymbol(const std::string& symname);
 
 ```
-This API will interally call SharedLibrary class's API to retrieve handle of bundle's shared library. 
-It will then supply the name and type of the symbol and fetch it from bundle class's utility functions.
+This API will first check if the bundle (from which the symbols are to be fetched) is in START + ACTIVE state.
+If it is, then it will internally call SharedLibrary class's API GetHandle to retrieve the handle of bundle's shared library.
+If not, it will throw an exception with message as "invalid bundle".
+
+If the handle is retrieved successfully, then it will supply type of the symbol, the handle to the bundle and name of the symbol BundleUtils's GetSymbol function.
 If the function pointer returned is nullptr, it will throw an exception with appropriate message.
+If the valid handle is retrieved, it will be returned to the caller. 
 
 For ex. in case of DS, it will be the symbols of extern "C" functions containing constructor/destructors calls to services.
 
