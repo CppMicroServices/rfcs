@@ -50,10 +50,12 @@ The output of the API will be the function pointer type supplied by the API user
 /**
 * Retrieves the resolved symbol from bundle shared library and returns a function pointer associated with it
 * 
+* @param1 Handle to the Bundle's shared library
+* @param2 Name of the symbol
+*
 * @return A function pointer symbols of type T supplied by the user or nullptr if the library is not loaded
 * 
-* @throws std::runtime_error if the bundle is not started and active
-* @throws std::runtime_error if the symbol fetched is nullptr
+* @throws std::runtime_error if the bundle is invalid (i.e not started and active)
 *
 * @pre  Bundle is already started and active
 *
@@ -62,30 +64,37 @@ The output of the API will be the function pointer type supplied by the API user
 */
 
 template<typename T>
-T GetSymbol(const std::string& symname);
+T GetSymbol(void * handle, const std::string& symname);
 
 ```
-This API will first check if the bundle (from which the symbols are to be fetched) is in START + ACTIVE state.
-If it is, then it will internally call SharedLibrary class's API GetHandle to retrieve the handle of bundle's shared library.
+This API will first check if the bundle (from which the symbols are to be fetched) is in START + ACTIVE state (i.e if the bundle is valid or not).
 If not, it will throw an exception with message as "invalid bundle".
 
-If the handle is retrieved successfully, then it will supply type of the symbol, the handle to the bundle and name of the symbol BundleUtils's GetSymbol function.
-If the function pointer returned is nullptr, it will throw an exception with appropriate message.
-If the valid handle is retrieved, it will be returned to the caller. 
+It will then supply the following incoming params to BundleUtils's GetSymbol function.
+1) type of the symbol
+2) name of the symbol
+3) handle to the bundle's shared library 
+
+If the valid handle is retrieved, it will be returned to the caller
+If not, nullptr will be returned.
 
 For ex. in case of DS, it will be the symbols of extern "C" functions containing constructor/destructors calls to services.
+Note that, DS will first load the bundle (after waiting on Bundle started event) using SharedLibrary::Load API.
 
 A typical usage workflow will be as below
 ```
-Void SomeDeclarativeServiceUser(const cppmicroservices::Bundle& bd)
+Void DeclarativeServiceImplFunc(const cppmicroservices::Bundle& bd)
 {
     try
     {
-        
-        auto handleCon = bd.GetSymbol<ComponentInstance*(*)(void)>(constructor_name);
-        auto handleDes = bd.GetSymbol<void(*)(ComponentInstance*)>(destructor_name);
-
-        // Do stuff with the handleCon and handleDes
+        SharedLibrary lib (bd.GetLocation());
+        lib.Load();
+        if(lib.IsLoaded())
+        {
+            auto handleCon = bd.GetSymbol<ComponentInstance*(*)(void)>(sh.GetHandle(), constructor_name);
+            auto handleDes = bd.GetSymbol<void(*)(ComponentInstance*)>(sh.GetHandle(), destructor_name);
+            // Do stuff with the handleCon and handleDes
+        }
     }
     catch(...)
     {
@@ -93,6 +102,7 @@ Void SomeDeclarativeServiceUser(const cppmicroservices::Bundle& bd)
     }    
 }
 ```
+
 
 ## How we teach this
 
