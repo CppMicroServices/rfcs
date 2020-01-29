@@ -55,7 +55,7 @@ The output of the API will be the function pointer type supplied by the API user
 *
 * @return A function pointer symbols of type T supplied by the user or nullptr if the library is not loaded
 * 
-* @throws std::runtime_error if the bundle is invalid (i.e not started and active)
+* @throws std::runtime_error if the bundle is not started or active.
 *
 * @pre  Bundle is already started and active
 *
@@ -67,10 +67,11 @@ template<typename T>
 T GetSymbol(void * handle, const std::string& symname);
 
 ```
-This API will first check if the bundle (from which the symbols are to be fetched) is in START + ACTIVE state (i.e if the bundle is valid or not).
-If not, it will throw an exception with message as "invalid bundle".
+This API will first check if the bundle (from which the symbols are to be fetched) is in START + ACTIVE state.
+If the state is not START + ACTIVE , it will throw an exception with message as "invalid bundle".
 
-It will then supply the following incoming params to BundleUtils's GetSymbol function.
+It yes, it will then supply the following incoming params to BundleUtils's GetSymbol function.
+
 1) type of the symbol
 2) name of the symbol
 3) handle to the bundle's shared library 
