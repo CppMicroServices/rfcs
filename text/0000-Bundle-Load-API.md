@@ -68,7 +68,7 @@ T GetSymbol(void * handle, const std::string& symname);
 
 ```
 This API will first check if the bundle (from which the symbols are to be fetched) is in START + ACTIVE state.
-If the state is not START + ACTIVE , it will throw an exception with message as "invalid bundle".
+If the state is not START + ACTIVE , it will throw an exception with message as "Bundle is not started or active!".
 
 It yes, it will then supply the following incoming params to BundleUtils's GetSymbol function.
 
