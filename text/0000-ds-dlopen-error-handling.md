@@ -75,7 +75,7 @@ defined here.
 
 #### Overview
 
-- Create a new exception type for shared library load failures - `SharedLibraryException`
+- Create a new exception type for shared library load failures - `SharedLibraryException`. This exception type provides a C++ equivalent of Java  `ClassNotFoundException` that is thrown when the class loader can't find a class (see OSGi Core Specification section 10.1.5.32 - https://osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.Bundle)   
 - Throw this exception from `Bundle::Start` and have DS throw it from its `ServiceFactory::GetService` implementation.
 - Modify CppMicroServices to catch a `SharedLibraryException` exception, log it per the OSGi spec, and rethrow it.
 - Modify the DS implementation to not catch exceptions thrown from a failure to load the shared library.
@@ -170,10 +170,7 @@ on the impact of the API churn on existing apps, etc.
 
 > There are tradeoffs to choosing any path, please attempt to identify them here.
 
-- Not OSGi compliant. The relevant OSGi text can be found under ServiceFactory::GetService where it describes how errors coming from service factories (which DS uses to do its job) should be handled:
-
-> The Framework must check that the returned service object is valid. If the returned service object is `null` or is not an `instanceof` all the classes named when the service was registered, a framework event of type [FrameworkEvent.ERROR](https://osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.FrameworkEvent.ERROR) is fired containing a service exception of type [ServiceException.FACTORY_ERROR](https://osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.ServiceException.FACTORY_ERROR) and `null` is returned to the bundle. **If this method throws an exception, a framework event of type [FrameworkEvent.ERROR](https://osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.FrameworkEvent.ERROR) is fired containing a service exception of type [ServiceException.FACTORY_EXCEPTION](https://osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.ServiceException.FACTORY_EXCEPTION) with the thrown exception as the cause and `null` is returned to the bundle.** If this method is recursively called for the specified bundle, a framework event of type [FrameworkEvent.ERROR](https://osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.FrameworkEvent.ERROR) is fired containing a service exception of type [ServiceException.FACTORY_RECURSION](https://osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.ServiceException.FACTORY_RECURSION) and `null` is returned to the bundle.
-
+- Increase in code complexity with additional try/catch blocks added to CppMicroServices framework and Declarative Services implementations.
 
 
 ## Alternatives
