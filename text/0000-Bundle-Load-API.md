@@ -113,6 +113,6 @@ Clients except for DS must follow the usual bundle lifetime (install => start =>
 
 ## Drawbacks
 
-This allows one (framework API user) to bypass a crucial step in the Bundle::Start() operation, the one where it loads the bundle's shared library.
+Allows clients easier access to the bundles exported symbols. Clients of the CppMicroServices framework are meant to interact with bundles through the framework APIs. This may encourage clients to use this API and outside of extender patterns, like Declarative Services, this functionality shouldn't be used.
 
 ## Unresolved questions
