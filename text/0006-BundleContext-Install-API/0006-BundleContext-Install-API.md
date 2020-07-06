@@ -14,6 +14,8 @@ Allows users of the system to inject bundle manifests into the registry directly
 
 ## Detailed design
 
+![InstallBundlesSequence](./InstallBundlesSequence.svg)
+
 ### BundleContext
 
 ```c++
