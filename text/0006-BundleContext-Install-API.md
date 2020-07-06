@@ -14,7 +14,7 @@ Allows users of the system to inject bundle manifests into the registry directly
 
 ## Detailed design
 
-![InstallBundlesSequence](./InstallBundlesSequence.svg)
+![InstallBundlesSequence](0006-BundleContext-Install-API/InstallBundlesSequence.svg)
 
 ### BundleContext
 
