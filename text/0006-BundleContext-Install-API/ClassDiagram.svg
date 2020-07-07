@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="-1020 378 1238 884" width="1238" height="884">
+<svg version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="-1020 378 1274 953" width="1274" height="953">
   <defs>
     <font-face font-family="Avenir" font-size="13" panose-1="2 11 5 3 2 2 3 2 2 4" units-per-em="1000" underline-position="-75" underline-thickness="50" slope="0" x-height="468" cap-height="708" ascent="1e3" descent="-365.9973" font-weight="400">
       <font-face-src>
@@ -39,33 +39,33 @@
     </font-face>
   </defs>
   <metadata> Produced by OmniGraffle 7.16 
-    <dc:date>2020-07-07 13:26:09 +0000</dc:date>
+    <dc:date>2020-07-07 13:37:59 +0000</dc:date>
   </metadata>
   <g id="Canvas_1" fill-opacity="1" fill="none" stroke-dasharray="none" stroke="none" stroke-opacity="1">
     <title>Canvas 1</title>
-    <rect fill="white" x="-1020" y="378" width="1238" height="884"/>
+    <rect fill="white" x="-1020" y="378" width="1274" height="953"/>
     <g id="Canvas_1: Layer 1">
       <title>Layer 1</title>
       <g id="Group_115">
         <title>Class with Attributes</title>
         <g id="Graphic_122">
           <title>Attributes</title>
-          <rect x="-134" y="768.3023" width="335" height="30.697674" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-128 774.3023)" fill="black">
+          <rect x="-140.31399" y="787.3114" width="335" height="30.697674" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-134.31399 793.3114)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">map&lt;long, shared_ptr&lt;BundleArchive&gt;&gt; archives</tspan>
           </text>
         </g>
         <g id="Graphic_117">
           <title>Attributes</title>
-          <rect x="-134" y="737.60465" width="335" height="30.697674" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-128 743.60465)" fill="black">
+          <rect x="-140.31399" y="756.6138" width="335" height="30.697674" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-134.31399 762.6138)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">long nextFreeId</tspan>
           </text>
         </g>
         <g id="Graphic_116">
           <title>Class Name</title>
-          <rect x="-134" y="711" width="335" height="26.60465" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-128 715.3023)" fill="black">
+          <rect x="-140.31399" y="730.0091" width="335" height="26.60465" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-134.31399 734.3114)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="90.962" y="13">BundleStorageMemory</tspan>
           </text>
         </g>
@@ -74,12 +74,12 @@
         <title>Class with Attributes</title>
         <g id="Graphic_120">
           <title>Attributes</title>
-          <rect x="-94" y="665" width="255" height="24" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <rect x="-100.31399" y="684.0091" width="255" height="24" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
         </g>
         <g id="Graphic_119">
           <title>Class Name</title>
-          <rect x="-94" y="639" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-88 643)" fill="black">
+          <rect x="-100.31399" y="658.0091" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-94.31399 662.0091)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="76.234" y="13">BundleStorage</tspan>
           </text>
         </g>
@@ -205,79 +205,79 @@
         <title>Class with Attributes</title>
         <g id="Graphic_113">
           <title>Attributes</title>
-          <rect x="-660" y="1066" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-654 1072)" fill="black">
+          <rect x="-666.343" y="1206" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-660.343 1212)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">BundleManifest manifest</tspan>
           </text>
         </g>
         <g id="Graphic_105">
           <title>Attributes</title>
-          <rect x="-660" y="1036.7963" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-654 1042.7963)" fill="black">
+          <rect x="-666.343" y="1176.7963" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-660.343 1182.7963)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">long bundleId</tspan>
           </text>
         </g>
         <g id="Graphic_104">
           <title>Attributes</title>
-          <rect x="-660" y="1007.7567" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-654 1013.7567)" fill="black">
+          <rect x="-666.343" y="1147.7567" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-660.343 1153.7567)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">string location</tspan>
           </text>
         </g>
         <g id="Graphic_102">
           <title>Attributes</title>
-          <rect x="-660" y="949.5135" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-654 955.5135)" fill="black">
+          <rect x="-666.343" y="1089.5135" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-660.343 1095.5135)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">shared_ptr&lt;BundleResourceContainer&gt; resourceContainer</tspan>
           </text>
         </g>
         <g id="Graphic_100">
           <title>Class Name</title>
-          <rect x="-660" y="895" width="420" height="25.309838" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-654 898.6549)" fill="black">
+          <rect x="-666.343" y="1035" width="420" height="25.309838" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-660.343 1038.6549)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="160.0405" y="13">BundleArchive</tspan>
           </text>
         </g>
         <g id="Graphic_103">
           <title>Attributes</title>
-          <rect x="-660" y="978.7172" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-654 984.7172)" fill="black">
+          <rect x="-666.343" y="1118.7172" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-660.343 1124.7172)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">string resourcePrefix</tspan>
           </text>
         </g>
         <g id="Graphic_101">
           <title>Attributes</title>
-          <rect x="-660" y="920.3098" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-654 926.3098)" fill="black">
+          <rect x="-666.343" y="1060.3098" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-660.343 1066.3098)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">BundleStorage* storage</tspan>
           </text>
         </g>
       </g>
       <g id="Line_114">
-        <path d="M -494 706.695 L -450 706.695 L -450 885.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -494 706.695 L -456.343 706.695 L -456.343 1025.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_121">
-        <line x1="33.5" y1="711" x2="33.5" y2="698.9" marker-end="url(#Arrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <line x1="27.186012" y1="730.0091" x2="27.186012" y2="717.9091" marker-end="url(#Arrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Group_125">
         <title>Class with Attributes</title>
         <g id="Graphic_127">
           <title>Attributes</title>
-          <rect x="-202" y="1023.3055" width="255" height="28" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-196 1029.3055)" fill="black">
+          <rect x="-208.343" y="1163.3055" width="255" height="28" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-202.343 1169.3055)" fill="black">
             <tspan font-family="Helvetica" font-size="13" font-weight="400" fill="black" x="0" y="13">set&lt;string&gt; m_SortedToplevelDirs</tspan>
           </text>
         </g>
         <g id="Graphic_126">
           <title>Class Name</title>
-          <rect x="-202" y="997.3055" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-196 1001.3055)" fill="black">
+          <rect x="-208.343" y="1137.3055" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-202.343 1141.3055)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="42.772" y="13">BundleResourceContainer</tspan>
           </text>
         </g>
       </g>
       <g id="Line_128">
-        <path d="M -240 964.1153 L -74.5 964.1153 L -74.5 987.4055" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -246.343 1104.1153 L -80.84301 1104.1153 L -80.84301 1127.4055" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Graphic_130">
         <rect x="-461.39373" y="573.57024" width="36.688" height="28.447998" fill="white"/>
@@ -289,53 +289,90 @@
         <title>Class with Attributes</title>
         <g id="Graphic_134">
           <title>Attributes</title>
-          <rect x="-327" y="1233" width="255" height="28" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-321 1239)" fill="black">
+          <rect x="-314" y="1302" width="255" height="28" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-308 1308)" fill="black">
             <tspan font-family="Helvetica" font-size="13" font-weight="400" fill="black" x="0" y="13">AnyMap m_Headers</tspan>
           </text>
         </g>
         <g id="Graphic_133">
           <title>Class Name</title>
-          <rect x="-327" y="1207" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-321 1211)" fill="black">
+          <rect x="-314" y="1276" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-308 1280)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="73.9395" y="13">BundleManifest</tspan>
           </text>
         </g>
       </g>
       <g id="Line_135">
-        <path d="M -240 1080.6018 L -199.5 1080.6018 L -199.5 1197.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -246.343 1220.6018 L -186.5 1220.6018 L -186.5 1266.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_143">
-        <path d="M -240 934.9117 L 216.73754 934.9117 L 216.73754 652 L 161 652" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -246.343 1074.9117 L 216.73754 1074.9117 L 216.73754 671.0091 L 154.68601 671.0091" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Group_145">
         <title>Class with Attributes</title>
+        <g id="Graphic_152">
+          <title>Attributes</title>
+          <rect x="-441" y="748.0091" width="249.686" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-435 754.0091)" fill="black">
+            <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">BundleRegistry bundleRegistry</tspan>
+          </text>
+        </g>
         <g id="Graphic_147">
           <title>Attributes</title>
-          <rect x="-434.686" y="699" width="249.686" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-428.686 705)" fill="black">
+          <rect x="-441" y="718.0091" width="249.686" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-435 724.0091)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">unique_ptr&lt;BundleStorage&gt; storage</tspan>
           </text>
         </g>
         <g id="Graphic_146">
           <title>Class Name</title>
-          <rect x="-434.686" y="673" width="249.686" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-428.686 677)" fill="black">
+          <rect x="-441" y="692.0091" width="249.686" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-435 696.0091)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="58.6595" y="13">CoreBundleContext</tspan>
           </text>
         </g>
       </g>
       <g id="Line_149">
-        <path d="M -494 647.3699 L -309.843 647.3699 L -309.843 663.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -494 647.3699 L -316.157 647.3699 L -316.157 682.1091" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_150">
-        <path d="M -185 714 L -155.85938 714 L -155.85938 605.50336 L 33.5 605.50336 L 33.5 629.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -191.31399 733.0091 L -153.5799 733.0091 L -153.5799 629.2771 L 27.186012 629.2771 L 27.186012 648.1091" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Graphic_151">
-        <rect x="-185.92263" y="920.6877" width="36.688" height="28.447998" fill="white"/>
-        <text transform="translate(-180.92263 925.6877)" fill="black">
+        <rect x="-180.09676" y="1060.6877" width="36.688" height="28.447998" fill="white"/>
+        <text transform="translate(-175.09676 1065.6877)" fill="black">
           <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="0" y="15">1..1</tspan>
         </text>
+      </g>
+      <g id="Group_153">
+        <title>Class with Attributes</title>
+        <g id="Graphic_156">
+          <title>Attributes</title>
+          <rect x="-388.407" y="949.0091" width="352.5" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-382.407 955.0091)" fill="black">
+            <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">multimap&lt;string, shared_ptr&lt;BundlePrivate&gt;&gt; bundles</tspan>
+          </text>
+        </g>
+        <g id="Graphic_155">
+          <title>Attributes</title>
+          <rect x="-388.407" y="919.0091" width="352.5" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-382.407 925.0091)" fill="black">
+            <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">CoreBundleContext* coreCtx</tspan>
+          </text>
+        </g>
+        <g id="Graphic_154">
+          <title>Class Name</title>
+          <rect x="-388.407" y="893.0091" width="352.5" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-382.407 897.0091)" fill="black">
+            <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="124.126" y="13">BundleRegistry</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="Line_160">
+        <path d="M -191.31399 763.0091 L -181.31399 763.0091 L -181.31399 820.5591 L -212.157 820.5591 L -212.157 883.1091" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_161">
+        <path d="M -316.157 692.0091 L -316.157 607.81744 L 247.45847 607.81744 L 247.45847 934.0091 L 222.23754 934.0091 C 222.23754 928.5091 211.23754 928.5091 211.23754 934.0091 L -35.906994 934.0091" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
     </g>
   </g>
