@@ -39,7 +39,7 @@
     </font-face>
   </defs>
   <metadata> Produced by OmniGraffle 7.16 
-    <dc:date>2020-07-07 20:21:11 +0000</dc:date>
+    <dc:date>2020-07-09 15:05:56 +0000</dc:date>
   </metadata>
   <g id="Canvas_1" fill-opacity="1" fill="none" stroke-dasharray="none" stroke="none" stroke-opacity="1">
     <title>Canvas 1</title>
@@ -205,56 +205,56 @@
         <title>Class with Attributes</title>
         <g id="Graphic_113">
           <title>Attributes</title>
-          <rect x="-666.343" y="1206" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-660.343 1212)" fill="black">
+          <rect x="-681" y="1204" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-675 1210)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">BundleManifest manifest</tspan>
           </text>
         </g>
         <g id="Graphic_105">
           <title>Attributes</title>
-          <rect x="-666.343" y="1176.7963" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-660.343 1182.7963)" fill="black">
+          <rect x="-681" y="1174.7963" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-675 1180.7963)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">long bundleId</tspan>
           </text>
         </g>
         <g id="Graphic_104">
           <title>Attributes</title>
-          <rect x="-666.343" y="1147.7567" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-660.343 1153.7567)" fill="black">
+          <rect x="-681" y="1145.7567" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-675 1151.7567)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">string location</tspan>
           </text>
         </g>
         <g id="Graphic_102">
           <title>Attributes</title>
-          <rect x="-666.343" y="1089.5135" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-660.343 1095.5135)" fill="black">
+          <rect x="-681" y="1087.5135" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-675 1093.5135)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">shared_ptr&lt;BundleResourceContainer&gt; resourceContainer</tspan>
           </text>
         </g>
         <g id="Graphic_100">
           <title>Class Name</title>
-          <rect x="-666.343" y="1035" width="420" height="25.309838" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-660.343 1038.6549)" fill="black">
+          <rect x="-681" y="1033" width="420" height="25.309838" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-675 1036.6549)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="160.0405" y="13">BundleArchive</tspan>
           </text>
         </g>
         <g id="Graphic_103">
           <title>Attributes</title>
-          <rect x="-666.343" y="1118.7172" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-660.343 1124.7172)" fill="black">
+          <rect x="-681" y="1116.7172" width="420" height="29.039593" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-675 1122.7172)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">string resourcePrefix</tspan>
           </text>
         </g>
         <g id="Graphic_101">
           <title>Attributes</title>
-          <rect x="-666.343" y="1060.3098" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-660.343 1066.3098)" fill="black">
+          <rect x="-681" y="1058.3098" width="420" height="29.20366" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-675 1064.3098)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">BundleStorage* storage</tspan>
           </text>
         </g>
       </g>
       <g id="Line_114">
-        <path d="M -494 706.695 L -456.343 706.695 L -456.343 1025.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -494 706.695 L -471 706.695 L -471 1023.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_121">
         <line x1="27.186012" y1="730.0091" x2="27.186012" y2="717.9091" marker-end="url(#Arrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
@@ -277,7 +277,7 @@
         </g>
       </g>
       <g id="Line_128">
-        <path d="M -246.343 1104.1153 L -80.84301 1104.1153 L -80.84301 1127.4055" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -261 1102.1153 L -80.84301 1102.1153 L -80.84301 1127.4055" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Graphic_130">
         <rect x="-461.39373" y="573.57024" width="36.688" height="28.447998" fill="white"/>
@@ -303,10 +303,10 @@
         </g>
       </g>
       <g id="Line_135">
-        <path d="M -246.343 1220.6018 L 113.5 1220.6018 L 113.5 1264.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -261 1218.6018 L 113.5 1218.6018 L 113.5 1264.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_143">
-        <path d="M -246.343 1074.9117 L 216.73754 1074.9117 L 216.73754 671.0091 L 154.68601 671.0091" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -261 1072.9117 L 224.0358 1072.9117 L 224.0358 671.0091 L 154.68601 671.0091" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Group_145">
         <title>Class with Attributes</title>
@@ -339,8 +339,8 @@
         <path d="M -191.31399 733.0091 L -153.5799 733.0091 L -153.5799 629.2771 L 27.186012 629.2771 L 27.186012 648.1091" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Graphic_151">
-        <rect x="-180.09676" y="1060.6877" width="36.688" height="28.447998" fill="white"/>
-        <text transform="translate(-175.09676 1065.6877)" fill="black">
+        <rect x="-192.27227" y="1058.6877" width="36.688" height="28.447998" fill="white"/>
+        <text transform="translate(-187.27227 1063.6877)" fill="black">
           <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="0" y="15">1..1</tspan>
         </text>
       </g>
@@ -348,34 +348,37 @@
         <title>Class with Attributes</title>
         <g id="Graphic_156">
           <title>Attributes</title>
-          <rect x="-388.407" y="949.0091" width="352.5" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-382.407 955.0091)" fill="black">
+          <rect x="-343" y="918.5046" width="352.5" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-337 924.5046)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">multimap&lt;string, shared_ptr&lt;BundlePrivate&gt;&gt; bundles</tspan>
           </text>
         </g>
         <g id="Graphic_155">
           <title>Attributes</title>
-          <rect x="-388.407" y="919.0091" width="352.5" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-382.407 925.0091)" fill="black">
+          <rect x="-343" y="888.5046" width="352.5" height="30" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-337 894.5046)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="400" fill="black" x="0" y="13">CoreBundleContext* coreCtx</tspan>
           </text>
         </g>
         <g id="Graphic_154">
           <title>Class Name</title>
-          <rect x="-388.407" y="893.0091" width="352.5" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-382.407 897.0091)" fill="black">
+          <rect x="-343" y="862.5046" width="352.5" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-337 866.5046)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="124.126" y="13">BundleRegistry</tspan>
           </text>
         </g>
       </g>
       <g id="Line_160">
-        <path d="M -191.31399 763.0091 L -181.31399 763.0091 L -181.31399 820.5591 L -212.157 820.5591 L -212.157 883.1091" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -191.31399 763.0091 L -166.75 763.0091 L -166.75 852.6046" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_161">
-        <path d="M -316.157 692.0091 L -316.157 607.81744 L 247.45847 607.81744 L 247.45847 934.0091 L 222.23754 934.0091 C 222.23754 928.5091 211.23754 928.5091 211.23754 934.0091 L -35.906994 934.0091" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -316.157 692.0091 L -316.157 607.81744 L 247.45847 607.81744 L 247.45847 903.5046 L 229.5358 903.5046 C 229.5358 898.0046 218.5358 898.0046 218.5358 903.5046 L 9.5 903.5046" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_162">
-        <path d="M -494 677.03245 L -447.4535 677.03245 L -447.4535 1018.834 L 113.5 1018.834 L 113.5 1069.4117 C 119 1069.4117 119 1080.4117 113.5 1080.4117 L 113.5 1274" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -494 677.03245 L -446.99367 677.03245 L -446.99367 1003.7826 L 113.5 1003.7826 L 113.5 1067.4117 C 119 1067.4117 119 1078.4117 113.5 1078.4117 L 113.5 1274" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_163">
+        <path d="M 194.68601 802.6603 L 204.686 802.6603 L 204.686 898.0046 C 210.186 898.0046 210.186 909.0046 204.686 909.0046 L 204.686 971.9838 L -441.49367 971.9838 C -441.49367 966.4838 -452.49367 966.4838 -452.49367 971.9838 L -471 971.9838 L -471 1033" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
     </g>
   </g>
