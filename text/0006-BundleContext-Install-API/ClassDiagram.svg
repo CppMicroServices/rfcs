@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="-1020 378 1274 953" width="1274" height="953">
+<svg version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="-1020 378 1274 951" width="1274" height="951">
   <defs>
     <font-face font-family="Avenir" font-size="13" panose-1="2 11 5 3 2 2 3 2 2 4" units-per-em="1000" underline-position="-75" underline-thickness="50" slope="0" x-height="468" cap-height="708" ascent="1e3" descent="-365.9973" font-weight="400">
       <font-face-src>
@@ -39,11 +39,11 @@
     </font-face>
   </defs>
   <metadata> Produced by OmniGraffle 7.16 
-    <dc:date>2020-07-07 13:37:59 +0000</dc:date>
+    <dc:date>2020-07-07 20:21:11 +0000</dc:date>
   </metadata>
   <g id="Canvas_1" fill-opacity="1" fill="none" stroke-dasharray="none" stroke="none" stroke-opacity="1">
     <title>Canvas 1</title>
-    <rect fill="white" x="-1020" y="378" width="1274" height="953"/>
+    <rect fill="white" x="-1020" y="378" width="1274" height="951"/>
     <g id="Canvas_1: Layer 1">
       <title>Layer 1</title>
       <g id="Group_115">
@@ -289,21 +289,21 @@
         <title>Class with Attributes</title>
         <g id="Graphic_134">
           <title>Attributes</title>
-          <rect x="-314" y="1302" width="255" height="28" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-308 1308)" fill="black">
+          <rect x="-14" y="1300" width="255" height="28" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-8 1306)" fill="black">
             <tspan font-family="Helvetica" font-size="13" font-weight="400" fill="black" x="0" y="13">AnyMap m_Headers</tspan>
           </text>
         </g>
         <g id="Graphic_133">
           <title>Class Name</title>
-          <rect x="-314" y="1276" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-          <text transform="translate(-308 1280)" fill="black">
+          <rect x="-14" y="1274" width="255" height="26" stroke="#b9c0c1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <text transform="translate(-8 1278)" fill="black">
             <tspan font-family="Avenir" font-size="13" font-weight="800" fill="black" x="73.9395" y="13">BundleManifest</tspan>
           </text>
         </g>
       </g>
       <g id="Line_135">
-        <path d="M -246.343 1220.6018 L -186.5 1220.6018 L -186.5 1266.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <path d="M -246.343 1220.6018 L 113.5 1220.6018 L 113.5 1264.1" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
       <g id="Line_143">
         <path d="M -246.343 1074.9117 L 216.73754 1074.9117 L 216.73754 671.0091 L 154.68601 671.0091" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
@@ -373,6 +373,9 @@
       </g>
       <g id="Line_161">
         <path d="M -316.157 692.0091 L -316.157 607.81744 L 247.45847 607.81744 L 247.45847 934.0091 L 222.23754 934.0091 C 222.23754 928.5091 211.23754 928.5091 211.23754 934.0091 L -35.906994 934.0091" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_162">
+        <path d="M -494 677.03245 L -447.4535 677.03245 L -447.4535 1018.834 L 113.5 1018.834 L 113.5 1069.4117 C 119 1069.4117 119 1080.4117 113.5 1080.4117 L 113.5 1274" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
       </g>
     </g>
   </g>
