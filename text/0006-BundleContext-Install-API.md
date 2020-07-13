@@ -2,15 +2,19 @@
 - RFC PR: (in a subsequent commit to the PR, fill me with the PR's URL)
 - CppMicroServices Issue: (fill me with the URL of the CppMicroServices issue that necessisated this RFC, otherwise leave blank)
 
-# Add BundleContext::InstallBundles API
+# Add BundleManifest Injection Capabilities 
 
 ## Summary
 
-Provide a api to initialize the bundle registry with a bundle manifest
+Provide a api to initialize the bundle registry with a bundle manifest during the BundleContext::InstallBundles operation by providing an optional argument containing a manifest.
 
 ## Motivation
 
 Allows users of the system to inject bundle manifests into the registry directly. We will be able to use this mechanism to speed up initial install of very large numbers of bundles.
+
+For example, imagine an application architected for extesibility using plugins, and imagine that the basic operations of the application are all implemented using that architecture. When the application starts, the list of plugins along with a description needs to be made available to the user (as a requirement of the application, not CppMicroServices).  In order to get the names and descriptions of the plugins, each bundle needs to be installed so that information from the manifest can be used. As the number of plugins grows, startup of the program takes longer and longer. After doing some analysis, the developer discovers that much of the application startup time is spent opening and reading the bundles for their manifests.
+
+This proposal discusses an approach that could solve this problem with an API for injecting manifests into the BundleRegistry directly, without opening and reading the manifests from the bundles.
 
 ## Detailed design
 
@@ -29,12 +33,37 @@ This is a partial class diagram showing the relationship between the pieces of t
 #### BundleContext
 
 ```c++
-/** Wrapper around BundleRegistry::Install
-* 
-* @param location The absolute path to the location of the bundle whose manifest 
-*        is to be installed
-* @param manifest the manifest for the bundle. 
-*/
+/**
+ * Installs all bundles from the bundle library at the specified location.
+ *
+ * The following steps are required to install a bundle:
+ * -# If a bundle containing the same install location is already installed, the Bundle object for that
+ *    bundle is returned.
+ * -# The bundle's associated resources are allocated. The associated resources minimally consist of a
+ *    unique identifier and a persistent storage area if the platform has file system support. If this step
+ *    fails, a std::runtime_error is thrown.
+ * -# A bundle event of type <code>BundleEvent::BUNDLE_INSTALLED</code> is fired.
+ * -# The Bundle object for the newly or previously installed bundle is returned.
+ *
+ * @remarks An install location is an absolute path to a shared library or executable file
+ * which may contain several bundles, i. e. acts as a bundle library.
+ *
+ * @remarks If the bundleManifest is passed in, it is installed. When the bundle is Started, the
+ * BundleManifest is NOT read from the file (as it has already been installed). In the event that
+ * the injected bundle manifest does NOT match the manifest in the bundle's file, the behavior of
+ * the system is undefined. That is, the content of the injected manifest and the manifest on disk
+ * are expected to be the same and are not compared.
+ * 
+ * @param location The location of the bundle library to install.
+ * @param bundleManifest the manifest of the bundle at "location". If non-empty
+ *        this will be used without opening the bundle at "location". Otherwise, the bundle will
+ *        be opened and the manifest read from there.
+ * @return The Bundle objects of the installed bundle library.
+ * @throws std::runtime_error If the BundleContext is no longer valid, or if the installation failed.
+ * @throws std::logic_error If the framework instance is no longer active
+ * @throws std::invalid_argument If the location is not a valid UTF8 string
+ */
+
 vector<Bundle> BundleContext::InstallBundles(std::string location
                                              , std::vector<AnyMap> manifest);
 
@@ -140,7 +169,7 @@ The **BundleStorage** class hierarchy is used for implementing different strateg
 - Install bundle manifest at a location, and then retrieve bundle and check manifest
 - Install bundle manifest for a test bundle that exists. Then get the service, call a method through the service interface and made sure that it was successfully started.
 - Install bundle manifest for multiple bundles that exist on disk and then start each one and verify that they have been properly instantiated.
-- Ensure Install bundle manifest for bundle already installed is ignored
+- a bundle installed more than once always returns the originally installed bundle to the caller and does not create multiple entries in the bundle registry for the same bundle.
 - Test for malformed manifest data.
   - I need to add manifest validation for required pieces of metadata for a bundle to work properly... we think that's only the bundle.symbolic_name.
 
