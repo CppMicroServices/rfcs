@@ -175,12 +175,6 @@ The **BundleStorage** class hierarchy is used for implementing different strateg
 
 ## How we teach this
 
-| Term | Definition |
-| ---- | ---------- |
-|      |            |
-|      |            |
-|      |            |
-
 The optional bundleManifest argument to BundleContext::InstallBundles(location, bundleManifest) is a map that is formatted as follows:
 
 - **Key**: Symbolic Name of the bundle.
@@ -229,11 +223,9 @@ There may be more than one bundle manifest in the case of a statically linked bu
 
 ## Drawbacks
 
-> Why should we *not* do this? Please consider the impact on teaching CppMicroServices,
-> on the integration of this feature with other existing and planned features,
-> on the impact of the API churn on existing apps, etc.
+There are some things to be aware of:
 
-> There are tradeoffs to choosing any path, please attempt to identify them here.
+* If a **bundleManifest** is passed in as the second argument to **BundleContext::InstallBundles(location, bundleManifest)** which does not match the bundleManifest actually contained in the bundle, the behavior is undefined. There is no error checking to make sure the manifests match. Doing so would be very time consuming and the whole point of this change is to provide a mechanism to reduce the overhead of installing, and eventually starting a bundle.
 
 ## Alternatives
 
