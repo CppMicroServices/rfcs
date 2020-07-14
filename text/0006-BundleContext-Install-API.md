@@ -55,7 +55,7 @@ This is a partial class diagram showing the relationship between the pieces of t
  * are expected to be the same and are not compared.
  * 
  * @param location The location of the bundle library to install.
- * @param bundleManifest the manifest of the bundle at "location". If non-empty
+ * @param bundleManifest the OPTIONAL manifest of the bundle at "location". If non-empty
  *        this will be used without opening the bundle at "location". Otherwise, the bundle will
  *        be opened and the manifest read from there.
  * @return The Bundle objects of the installed bundle library.
@@ -175,16 +175,57 @@ The **BundleStorage** class hierarchy is used for implementing different strateg
 
 ## How we teach this
 
-> What names and terminology work best for these concepts and why? How is this
-> idea best presented? As a continuation of existing CppMicroServices patterns, or as a
-> wholly new one?
+| Term | Definition |
+| ---- | ---------- |
+|      |            |
+|      |            |
+|      |            |
 
-> Would the acceptance of this proposal mean the CppMicroServices guides must be
-> re-organized or altered? Does it change how CppMicroServices is taught to new users
-> at any level?
+The optional bundleManifest argument to BundleContext::InstallBundles(location, bundleManifest) is a map that is formatted as follows:
 
-> How should this feature be introduced and taught to existing CppMicroServices
-> users?
+- **Key**: Symbolic Name of the bundle.
+- **Value**: The manifest for the bundled named in the **Key**.
+  - The value should be an exact representation of the entire manifest for the named bundle and should follow all the same rules
+    - bundle.symbolic_name must be defined (and also must match the **Key** from above)
+    - If bundle.version is specified, it must be in the correct format: "major.minor.patch"
+
+The following JSON snippet represents an example of the content of the AnyMap passed in the optional second parameter to BundleContext::InstallBundles(location, bundleManifest)
+
+```json
+{
+    "SymbolicNameBundle1" : {
+        "bundle.activator" : false,
+        "bundle.version" : "1.0.0",
+        "bundle.symbolic_name" : "SymbolicNameBundle1",
+        "bundle.vendor" : "cppms co.",
+        ... any other data in the manifest
+    }
+}
+
+```
+
+There may be more than one bundle manifest in the case of a statically linked bundle. In this case, there needs to be an entry for each bundle present:
+
+```json
+{
+    "SymbolicNameBundle1" : {
+        "bundle.activator" : false,
+        "bundle.version" : "1.0.0",
+        "bundle.symbolic_name" : "SymbolicNameBundle1",
+        "bundle.vendor" : "cppms co.",
+        ... any other data in the manifest
+    },
+    "SymbolicNameBundle2" : {
+        "bundle.activator" : false,
+        "bundle.version" : "1.0.0",
+        "bundle.symbolic_name" : "SymbolicNameBundle2",
+        "bundle.vendor" : "cppms co.",
+        ... any other data in the manifest
+    }
+}
+```
+
+
 
 ## Drawbacks
 
