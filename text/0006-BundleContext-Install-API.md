@@ -16,6 +16,8 @@ For example, imagine an application architected for extesibility using plugins, 
 
 This proposal discusses an approach that could solve this problem with an API for injecting manifests into the BundleRegistry directly, without opening and reading the manifests from the bundles.
 
+The inspiration for this API comes from the second  [installBundles API](https://docs.osgi.org/specification/osgi.core/7.0.0/framework.api.html#org.osgi.framework.BundleContext.installBundle-String-InputStream-) in the OSGi spec which provides for a stream from which to read the bundle.
+
 ## Detailed design
 
 ### Class Diagram
