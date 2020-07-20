@@ -10,7 +10,7 @@ Provide a api to initialize the bundle registry with a bundle manifest during th
 
 ## Motivation
 
-Allows users of the system to inject bundle manifests into the registry directly. We will be able to use this mechanism to speed up initial install of very large numbers of bundles.
+Allows users of the system to install bundle manifests into the registry directly. We will be able to use this mechanism to speed up initial install of very large numbers of bundles.
 
 For example, imagine an application architected for extesibility using plugins, and imagine that the basic operations of the application are all implemented using that architecture. When the application starts, the list of plugins along with a description needs to be made available to the user (as a requirement of the application, not CppMicroServices).  In order to get the names and descriptions of the plugins, each bundle needs to be installed so that information from the manifest can be used. As the number of plugins grows, startup of the program takes longer and longer. After doing some analysis, the developer discovers that much of the application startup time is spent opening and reading the bundles for their manifests.
 
