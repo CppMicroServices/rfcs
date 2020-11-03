@@ -95,7 +95,53 @@ namespace cppmicroservices {
 
 
 
+### Usage
 
+This is what typical usage would look like. Remember, this is not a RFC for the service's implementation.
+
+```c++
+#include <future>
+#include <algorithm>
+#include <functional>
+#include <chrono>
+
+#include "cppmicroservices/Framework.h"
+#include "cppmicroservices/BundleContext.h"
+
+namespace {
+struct Foo
+{
+  void DoFoo() const { /* do something */}
+};
+}
+
+// error handling intentionally left out
+int main() {
+  auto framework = FrameworkFactory().NewFramework();
+  framework.Start();
+    
+  auto bundles = framework.GetBundleContext().InstallBundles("%path to async service bundle%");
+  std::for_each(bundles.begin(), bundles.end(), [](Bundle& b) {b.Start();});
+  
+  auto svcRef = framework.GetBundleContext.GetServiceReference<cppmicroservices::async::AsyncWork>();
+  auto asyncQueue = framework.GetBundleContext.GetService(svcRef);
+
+  std::packaged_task<void()> work{ std::bind(
+    [](std::shared_ptr<Foo> foo) { foo->DoFoo(); }, std::make_shared<Foo>()) };
+  
+  // get the future if it's needed before the async task runs.  
+  auto work_future = work.get_future();
+
+  // create a shared_future and wait for a result
+  asyncQueue->post(std::move(work)).share().get();
+
+  work_future.get();
+  
+  framework.Stop();
+  framework.WaitForStop(std::chrono::milliseconds::zero());
+  return 0;
+}
+```
 
 
 
