@@ -8,7 +8,7 @@
 
 > One paragraph explanation of the feature.
 
-A service interface which allows users to perform and wait on unbounded asynchronous work allowing service interface implementations control over task scheduling and thread management.
+A service interface which allows users to execute and wait on unbounded asynchronous work, allowing service interface implementations control over task scheduling and thread management.
 
 This is a RFC for the service interface and not for the implementation of the service interface. There will be a separate RFC for the implementation.
 
@@ -46,7 +46,7 @@ Nicole is an application developer responsible for developing a large scientific
 
 ### Use Case 3: Unbounded Asynchronous Work
 
-Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks done in CppMicroServices core framework, Declarative Services and Config Admin are unbounded and need to be waited upon. Most of the asynchronous tasks involve calling back into user code via callbacks and as such cannot be guaranteed to finish in a bounded amount of time. Currently, `std::async` and `boost::asio::post` are being used to execute unbounded async tasks, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::asio::post` would need to provide a way to wait on the result and a way to receive a result or failure from the async task (**PP3**). 
+Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks done in CppMicroServices core framework, Declarative Services and Config Admin are unbounded and need to be waited upon. Most of the asynchronous tasks involve calling back into user code via callbacks and as such cannot be guaranteed to finish in a bounded amount of time. Currently, `std::async` and `boost::asio::post` are being used to execute unbounded async tasks, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::asio::post` needs to provide a way to wait on the result and a way to receive a failure from the async task (**PP3**). 
 
 
 
@@ -58,7 +58,7 @@ Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's 
 | 2    | The service interface should be decoupled from CppMicroServices and all compendium services. | PP2                 | Must Have |
 | 3    | CppMicroServices service based design                        | OSGi compliance     | Must Have |
 | 4    | Allow users to block on the asynchronous task until it has finished. | PP3                 | Must Have |
-| 5    | Allow users to receive the result or a failure from the asynchronous task. | PP3                 | Must Have |
+| 5    | Allow users to receive a failure from the asynchronous task. | PP3                 | Must Have |
 
 
 
@@ -79,21 +79,35 @@ defined here.
 ```c++
 namespace cppmicroservices { 
   namespace async {
-
-    
-      
-    class AsyncWork {
+    /**
+     *
+     */
+    class UnboundedAsyncTask {
     public:
-      virtual ~AsyncWork() noexcept = default;
+      virtual ~UnboundedAsyncTask() noexcept = default;
       
       /**
+       * Run a std::function<void()> object asynchronously on another thread.
        *
+       * @param task A std::function<void()> object representing a Callable target.
+       * @return A std::future<void> object to wait on the result of task.
+       * @note There is no guarantee made by this interface that the 
+       * std::future<void> returned will automatically block when it goes out of scope. 
+       * It may or may not depending on the implementation of this method.
        */
       virtual std::future<void> post(std::function<void()>&& task) = 0;
       
       /**
-       * Caller is required to manage the std::future<void> associated
-       * with the std::packaged_task<void()> to wait on the async task.
+       * Run a std::packaged_task<void()> asynchronously on another thread.
+       * The std::future<void> associated with the std::packaaged_task<void()>
+       * task object will contain the result from the task object.
+       *
+       * @param task A std::packaged_task<void()> wrapping a Callable target
+       * to execute asynchronously.
+       *
+       * @note The caller is required to manage the std::future<void> associated
+       * with the std::packaged_task<void()> in order to wait on the async task.
+       * 
        */
       virtual void post(std::packaged_task<void()>&& task) = 0;
     };
@@ -103,66 +117,146 @@ namespace cppmicroservices {
 
 
 
-### Usage
+### Design Cases
 
-This is what typical usage would look like. Remember, this is not a RFC for the service's implementation.
+This is what the proposed workflows would look like in contrast to any existing workflows.
+
+#### Design Case #1: CppMicroServices and compendium services
+
+##### Current Workflow for Configuration Admin:
+
+Configuration Admin has wrapped a call to `std::async` in a templated function which is called throughout the code.
 
 ```c++
-#include <future>
-#include <algorithm>
-#include <functional>
-#include <chrono>
-
-#include "cppmicroservices/Framework.h"
-#include "cppmicroservices/BundleContext.h"
-
-namespace {
-struct Foo
+// This template function currently wraps a call to std::async and manages
+// the std::future<void> objects returned.
+template <typename Functor>
+void ConfigurationAdminImpl::PerformAsync(Functor&& f)
 {
-  Foo(std::shared_future<void> fut) : fut_(fut) {}
-  void DoFoo() const { /* do something */}
-
-  std::shared_future<void> fut_;
-};
-}
-
-// error handling intentionally left out
-int main() {
-  auto framework = FrameworkFactory().NewFramework();
-  framework.Start();
-    
-  // imagine the async service bundle is installed and started here...
-  
-  auto svcRef = framework.GetBundleContext.GetServiceReference<cppmicroservices::async::AsyncWork>();
-  auto asyncQueue = framework.GetBundleContext.GetService(svcRef);
-
-  int i = 1;
-  int j = 2;
-    
-  std::shared_future<void> dummyFuture{};
-  auto boundPackagedTask =
-    std::bind([i, j](std::shared_ptr<Foo> foo) { foo->DoFoo(i, j); },
-              std::make_shared<Foo>(dummyFuture));
-
-  std::packaged_task<void()> handler{ std::move(boundPackagedTask) };
-  auto handlerSharedFuture = handler.get_future().share();
-  std::swap(handlerSharedFuture, dummyFuture);
-
-  // use std::packaged_task version
-  asyncQueue->post(std::move(handler));
-  dummyFuture.get();
-
-  // use std::function version
-  auto fut = asyncQueue->post(
-    std::bind([i, j](std::shared_ptr<Foo> foo) { foo->DoFoo(i, j); },
-              std::make_shared<Foo>(dummyFuture)));
-  fut.get();
-  
-  framework.Stop();
-  framework.WaitForStop(std::chrono::milliseconds::zero());
-  return 0;
+    std::lock_guard<std::mutex> lk{futuresMutex};
+    decltype(completeFutures){}.swap(completeFutures);
+    auto id = ++futuresID;
+    incompleteFutures.emplace(id, std::async(std::launch::async, [this, func = std::forward<Functor>(f), id]
+                                                      {
+                                                          func();
+                                                          std::lock_guard<std::mutex> lk{futuresMutex};
+                                                          auto it = incompleteFutures.find(id);
+                                                          assert(it != std::end(incompleteFutures) &&
+                                                                 "Invalid future iterator");
+                                                          completeFutures.push_back(std::move(it->second));
+                                                          incompleteFutures.erase(it);
+                                                          if (incompleteFutures.empty())
+                                                          {
+                                                              futuresCV.notify_one();
+                                                          }
+                                                      }));
 }
 ```
+
+```c++
+// PerformAsync call site example...
+PerformAsync([this, pid, managedServiceFactory]
+             {
+                 std::vector<std::pair<std::string, AnyMap>> pidsAndProperties;
+                 {
+                     std::lock_guard<std::mutex> lk{configurationsMutex};
+                     const auto it = factoryInstances.find(pid);
+                     if (it != std::end(factoryInstances))
+                     {
+                         for (const auto &instance : it->second)
+                         {
+                             const auto configurationIt = configurations.find(instance);
+                             assert(configurationIt != std::end(configurations) && 
+                                    "Invalid Configuration iterator");
+                             try
+                             {
+                                 auto properties = configurationIt->second->GetProperties();
+                                 pidsAndProperties.emplace_back(instance, std::move(properties));
+                             }
+                             catch (const std::runtime_error&)
+                             {
+                                 // Configuration is being removed
+                             }
+                         }
+                     }
+                 }
+                 for (const auto &pidAndProperties : pidsAndProperties)
+                 {
+                     notifyServiceUpdated(pidAndProperties.first, *managedServiceFactory, 
+                                          pidAndProperties.second, *logger);
+                 }
+             });
+```
+
+##### Proposed Workflow for Configuration Admin:
+
+The use of `std::async` can be replaced with a call to `post`. 
+
+```c++
+// This template function currently wraps a call to std::async and manages
+// the std::future<void> objects returned.
+template <typename Functor>
+void ConfigurationAdminImpl::PerformAsync(Functor&& f)
+{
+    auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<UnboundedAsyncTask> 
+    std::lock_guard<std::mutex> lk{futuresMutex};
+    decltype(completeFutures){}.swap(completeFutures);
+    auto id = ++futuresID;
+    incompleteFutures.emplace(id, asyncTaskService.post([this, func = std::forward<Functor>(f), id]
+                                                      {
+                                                          func();
+                                                          std::lock_guard<std::mutex> lk{futuresMutex};
+                                                          auto it = incompleteFutures.find(id);
+                                                          assert(it != std::end(incompleteFutures) &&
+                                                                 "Invalid future iterator");
+                                                          completeFutures.push_back(std::move(it->second));
+                                                          incompleteFutures.erase(it);
+                                                          if (incompleteFutures.empty())
+                                                          {
+                                                              futuresCV.notify_one();
+                                                          }
+                                                      }));
+}
+```
+
+<u>The PerformAsync call sites do not change.</u>
+
+
+
+#### Design Case #2: Applications integrating with CppMicroServices
+
+##### Proposed Workflow:
+
+1. Implement the UnboundedAsyncTask service interface as a CppMicroServices bundle.
+2. Install and start the bundle in the application code
+3. Use the service, for example:
+
+```c++
+auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<UnboundedAsyncTask>
+
+// fictional class types, 'foo' and 'bar'.
+foo f;
+bar b;
+
+// simple std::function<void()> usage that waits on the returned std::future<void>
+auto fut = asyncTaskService.post([f, b](){ /* do something... */});
+fut.get();
+
+// use a std::packaged_task<void()> and wait on the std::future<void>
+std::packaged_task<void()> task([f, b]() {/* do something */});
+auto pkgtask_future = task.get_future();
+asyncTaskService.post(std::move(task));
+pkgtask_future.get();
+
+// to use a Callable target with a function signature other than void(), use std::bind...
+auto fut2 = asyncTaskService.post(std::bind([](std::unique_ptr<foo> f, std::unique_ptr<bar> b)
+                                            { /* do something */},
+                                            std::make_unique<foo>(), std::make_unique<bar>()));
+fut2.get();
+
+```
+
+
 
 
 
@@ -179,7 +273,7 @@ at any level?
 > How should this feature be introduced and taught to existing CppMicroServices
 users?
 
-This feature is best represented using the existing names and terminology used in CppMicroServices. This service interface is meant to be implemented using CppMicroServices and accessed using the CppMicroServices Framework, like all the compendium services or any other user-provided CppMicroServices service.
+This feature is best represented using the existing names and terminology used in CppMicroServices. This service interface is meant to be implemented as a CppMicroServices bundle and accessed using the CppMicroServices Framework, like all the compendium services or any other user-provided CppMicroServices service.
 
 Public API doxygen documentation should be sufficient to teach users about this service interface and how to use it. Any questions about integrating this service into another application are covered by existing documentation or documentation that will be created as part of the RFC for this service interface's implementation.
 
@@ -193,7 +287,7 @@ on the impact of the API churn on existing apps, etc.
 
 There will be additional complexity within compendium services implementations to handle the optionality of this asynchronous work service, i.e. what to do if the service is not available?
 
-Given that compendium services which want to use this service will need to have a fallback if the service is not present means that a default implementation of the service needs to ship with CppMicroServices or each compendium service needs a way to execute work asynchronously that doesn't involve using this service interface.
+Given that compendium services which want to use this service will need to have a fallback if the service is not present means that a default implementation of the service needs to ship with CppMicroServices **OR** each compendium service needs a way to execute work asynchronously that doesn't involve using this service interface.
 
 Limitations of using template classes and functions in service interfaces. The service interface cannot leverage the full expressiveness of C++ templates.
 
@@ -220,4 +314,9 @@ Application developers integrating with CppMicroServices will not be able to lev
 > Optional, but suggested for first drafts. What parts of the design are still
 TBD?
 
-There is a limitation to what can be passed in to and returned from `post`. Templates cannot be used for the API as that requires compile time knowledge and breaks the service based design. Returning future<void> and passing in `std::packaged_task<void()>` puts restrictions on API users. For example, to pass in parameters to a packaged_task users would need to use `std::bind`. <u>Can an API be created to return future<T> and pass in a Callable object with a function signature other than void()?</u>
+There is a limitation to the Callable target's function signature and the std::future returned from `post`. Templates cannot be used for the API as that requires compile time knowledge and breaks the service based design.
+
+Returning future<void> and passing in `std::packaged_task<void()>` puts restrictions on API users. For example, to use a packaged_task taking any parameters, users would need to use `std::bind`. <u>Can an API be created to return future<T> and pass in a Callable object with a function signature other than void()? Is it necessary given the use cases and requirements?</u>
+
+A return type of `std::future<std::any>` could support  use cases where a return type other than `void` is required.
+
