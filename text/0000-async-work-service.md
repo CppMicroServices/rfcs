@@ -46,7 +46,7 @@ Nicole is an application developer responsible for developing a large scientific
 
 ### Use Case 3: Unbounded Asynchronous Work
 
-Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks done in CppMicroServices core framework, Declarative Services and Config Admin are unbounded and need to be waited upon. Most of the asynchronous tasks involve calling back into user code via callbacks and as such cannot be guaranteed to finish in a bounded amount of time. Currently `std::async` or `boost::asio::post` are being used, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::Asio::post` would need to provide a way to wait on the result and a way to receive a result or failure from the async task (**PP3**). 
+Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks done in CppMicroServices core framework, Declarative Services and Config Admin are unbounded and need to be waited upon. Most of the asynchronous tasks involve calling back into user code via callbacks and as such cannot be guaranteed to finish in a bounded amount of time. Currently, `std::async` and `boost::asio::post` are being used to execute unbounded async tasks, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::asio::post` would need to provide a way to wait on the result and a way to receive a result or failure from the async task (**PP3**). 
 
 
 
@@ -54,11 +54,11 @@ Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's 
 
 | ID   | Statement                                                    | Source / Pain Point | Priority  |
 | ---- | ------------------------------------------------------------ | ------------------- | --------- |
-| 1    | The service should be re-usable by any other CppMicroServices service or application. | PP1                 | Must Have |
-| 2    | The service should be decoupled from CppMicroServices and all compendium services. | PP2                 | Must Have |
+| 1    | The service interface should be re-usable by any other CppMicroServices service or application. | PP1                 | Must Have |
+| 2    | The service interface should be decoupled from CppMicroServices and all compendium services. | PP2                 | Must Have |
 | 3    | CppMicroServices service based design                        | OSGi compliance     | Must Have |
 | 4    | Allow users to block on the asynchronous task until it has finished. | PP3                 | Must Have |
-| 5    | Allow users to receive the result of a failure from the asynchronous task. | PP3                 | Must Have |
+| 5    | Allow users to receive the result or a failure from the asynchronous task. | PP3                 | Must Have |
 
 
 
@@ -80,6 +80,8 @@ defined here.
 namespace cppmicroservices { 
   namespace async {
 
+    
+      
     class AsyncWork {
     public:
       virtual ~AsyncWork() noexcept = default;
@@ -87,7 +89,13 @@ namespace cppmicroservices {
       /**
        *
        */
-      virtual std::future<void> post(std::packaged_task<void()>&&) = 0;
+      virtual std::future<void> post(std::function<void()>&& task) = 0;
+      
+      /**
+       * Caller is required to manage the std::future<void> associated
+       * with the std::packaged_task<void()> to wait on the async task.
+       */
+      virtual void post(std::packaged_task<void()>&& task) = 0;
     };
   }
 }
@@ -111,7 +119,10 @@ This is what typical usage would look like. Remember, this is not a RFC for the 
 namespace {
 struct Foo
 {
+  Foo(std::shared_future<void> fut) : fut_(fut) {}
   void DoFoo() const { /* do something */}
+
+  std::shared_future<void> fut_;
 };
 }
 
@@ -120,22 +131,32 @@ int main() {
   auto framework = FrameworkFactory().NewFramework();
   framework.Start();
     
-  auto bundles = framework.GetBundleContext().InstallBundles("%path to async service bundle%");
-  std::for_each(bundles.begin(), bundles.end(), [](Bundle& b) {b.Start();});
+  // imagine the async service bundle is installed and started here...
   
   auto svcRef = framework.GetBundleContext.GetServiceReference<cppmicroservices::async::AsyncWork>();
   auto asyncQueue = framework.GetBundleContext.GetService(svcRef);
 
-  std::packaged_task<void()> work{ std::bind(
-    [](std::shared_ptr<Foo> foo) { foo->DoFoo(); }, std::make_shared<Foo>()) };
-  
-  // get the future if it's needed before the async task runs.  
-  auto work_future = work.get_future();
+  int i = 1;
+  int j = 2;
+    
+  std::shared_future<void> dummyFuture{};
+  auto boundPackagedTask =
+    std::bind([i, j](std::shared_ptr<Foo> foo) { foo->DoFoo(i, j); },
+              std::make_shared<Foo>(dummyFuture));
 
-  // create a shared_future and wait for a result
-  asyncQueue->post(std::move(work)).share().get();
+  std::packaged_task<void()> handler{ std::move(boundPackagedTask) };
+  auto handlerSharedFuture = handler.get_future().share();
+  std::swap(handlerSharedFuture, dummyFuture);
 
-  work_future.get();
+  // use std::packaged_task version
+  asyncQueue->post(std::move(handler));
+  dummyFuture.get();
+
+  // use std::function version
+  auto fut = asyncQueue->post(
+    std::bind([i, j](std::shared_ptr<Foo> foo) { foo->DoFoo(i, j); },
+              std::make_shared<Foo>(dummyFuture)));
+  fut.get();
   
   framework.Stop();
   framework.WaitForStop(std::chrono::milliseconds::zero());
@@ -158,7 +179,7 @@ at any level?
 > How should this feature be introduced and taught to existing CppMicroServices
 users?
 
-This feature is best represented using the existing names and terminology used in CppMicroServices. This service interface is meant to be implemented as a CppMicroServices bundle and accessed using the CppMicroServices Framework, like all the compendium services or any other user-provided service.
+This feature is best represented using the existing names and terminology used in CppMicroServices. This service interface is meant to be implemented using CppMicroServices and accessed using the CppMicroServices Framework, like all the compendium services or any other user-provided CppMicroServices service.
 
 Public API doxygen documentation should be sufficient to teach users about this service interface and how to use it. Any questions about integrating this service into another application are covered by existing documentation or documentation that will be created as part of the RFC for this service interface's implementation.
 
@@ -174,7 +195,7 @@ There will be additional complexity within compendium services implementations t
 
 Given that compendium services which want to use this service will need to have a fallback if the service is not present means that a default implementation of the service needs to ship with CppMicroServices or each compendium service needs a way to execute work asynchronously that doesn't involve using this service interface.
 
-Limitations of using template classes and functions in service interfaces. 
+Limitations of using template classes and functions in service interfaces. The service interface cannot leverage the full expressiveness of C++ templates.
 
 ## Alternatives
 
