@@ -8,7 +8,7 @@
 
 > One paragraph explanation of the feature.
 
-A service interface which allows users to execute and wait on unbounded asynchronous work, allowing service interface implementations control over task scheduling and thread management.
+A service interface which allows users to execute and wait on  asynchronous work, allowing service interface implementations control over task scheduling and thread management.
 
 This is a RFC for the service interface and not for the implementation of the service interface. There will be a separate RFC for the implementation.
 
@@ -24,29 +24,29 @@ The primary motivation is to remove patterns in code that:
 - create N threads because there are N cores
 - create a thread per object (e.g. Bundle, socket, connection, widget, etc...)
 
-An additional motivating factor is code re-use and not re-inventing the wheel. Considering that the CppMicroServices core framework, Declarative Services and Configuration Admin all use threads to perform asynchronous work, it makes sense to use the same mechanism to do so. Instead of maintaining separate implementations to manage async work, using a generic service to post asynchronous work would reduce duplicate code and facilitate better control over the number of threads used by any software system using CppMicroServices.
+An additional motivating factor is code re-use and not re-inventing the wheel. Considering that the CppMicroServices core framework, Declarative Services and Configuration Admin all use threads to perform asynchronous work, it makes sense to use the same mechanism to do so. Instead of maintaining separate implementations to manage async work, using a generic service to post asynchronous work (to a thread, thread pool or inline) would reduce duplicate code and facilitate control over the number of threads used by any software system using CppMicroServices.
 
-A generic service to post and wait for asynchronous tasks enables users of CppMicroServices to use the same mechanism and provides users a means to write their own service implementations to better meet their needs for processing asynchronous work.
+A generic service to post and wait for asynchronous tasks enables CppMicroServices clients to use the same mechanism and provides a means to write their own service implementations to better meet their needs for executing asynchronous work.
 
 
 
 ### Use Case 1: CppMicroServices core Framework and compendium services
 
-Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. Two compendium services use asynchronous operations. Declarative Services does this by using a boost asio thread pool while Config Admin uses `std::async`.
+Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. Two compendium services use asynchronous operations. Declarative Services does this by using a `boost::asio::thread_pool` while Config Admin uses `std::async`.
 
 Jeff wants to make the same improvements to Config Admin that were made to Declarative Services, namely implementing a thread pool and remove the use of `std::async` for asynchronous tasks. To accomplish this Jeff can migrate the same Declarative Services change, which includes a build-time dependency on boost asio, to Config Admin (**PP1**, **PP2**).  
 
 
 
-### Use Case 2: Applications integrating with CppMicroServices
+### Use Case 2: Application integration with CppMicroServices
 
-Nicole is an application developer responsible for developing a large scientific computing application. This application has many features which use asynchronous tasks and has at least one thread pool implementation used to run these asynchronous tasks. She wants to integrate with CppMicroServices and also be able to manage the threads used by CppMicroServices. Currently it is not possible to control the threads used by CppMicroServices (**PP1**).
+Nicole is an application developer responsible for developing a large scientific computing application. This application has many features which use asynchronous tasks and has at least one thread pool implementation used to run these asynchronous tasks. She uses CppMicroServices within the application and wants to have CppMicroServices use the same thread pool implementation  used throughout the application. Currently it is not possible to control the threads used by CppMicroServices (**PP1**).
 
 
 
-### Use Case 3: Unbounded Asynchronous Work
+### Use Case 3: Executing Asynchronous Tasks
 
-Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks done in CppMicroServices core framework, Declarative Services and Config Admin are unbounded and need to be waited upon. Most of the asynchronous tasks involve calling back into user code via callbacks and as such cannot be guaranteed to finish in a bounded amount of time. Currently, `std::async` and `boost::asio::post` are being used to execute unbounded async tasks, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::asio::post` needs to provide a way to wait on the result and a way to receive a failure from the async task (**PP3**). 
+Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks done in CppMicroServices core framework, Declarative Services and Config Admin are need to be waited upon. Most of the asynchronous tasks involve calling back into user code via callbacks and as such cannot be guaranteed to finish in a bounded amount of time. Currently, `std::async` and `boost::asio::post` are being used to execute  async tasks, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::asio::post` needs to provide a way to wait on the result and a way to receive a failure from the async task (**PP3**). 
 
 
 
@@ -79,12 +79,13 @@ defined here.
 ```c++
 namespace cppmicroservices { 
   namespace async {
+      namespace detail {
     /**
      *
      */
-    class UnboundedAsyncTask {
+    class AsyncWork {
     public:
-      virtual ~UnboundedAsyncTask() noexcept = default;
+      virtual ~AsyncWork() noexcept = default;
       
       /**
        * Run a std::function<void()> object asynchronously on another thread.
@@ -111,6 +112,7 @@ namespace cppmicroservices {
        */
       virtual void post(std::packaged_task<void()>&& task) = 0;
     };
+  }
   }
 }
 ```
@@ -198,7 +200,7 @@ The use of `std::async` can be replaced with a call to `post`.
 template <typename Functor>
 void ConfigurationAdminImpl::PerformAsync(Functor&& f)
 {
-    auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<UnboundedAsyncTask> 
+    auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<AsyncWork> 
     std::lock_guard<std::mutex> lk{futuresMutex};
     decltype(completeFutures){}.swap(completeFutures);
     auto id = ++futuresID;
@@ -227,12 +229,12 @@ void ConfigurationAdminImpl::PerformAsync(Functor&& f)
 
 ##### Proposed Workflow:
 
-1. Implement the UnboundedAsyncTask service interface as a CppMicroServices bundle.
+1. Implement the  service interface as a CppMicroServices bundle.
 2. Install and start the bundle in the application code
 3. Use the service, for example:
 
 ```c++
-auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<UnboundedAsyncTask>
+auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<>
 
 // fictional class types, 'foo' and 'bar'.
 foo f;
@@ -255,6 +257,8 @@ auto fut2 = asyncTaskService.post(std::bind([](std::unique_ptr<foo> f, std::uniq
 fut2.get();
 
 ```
+
+4. CppMicroServices can use this service implementation instead of whatever default async mechanism is used internally.
 
 
 
@@ -289,7 +293,7 @@ There will be additional complexity within compendium services implementations t
 
 Given that compendium services which want to use this service will need to have a fallback if the service is not present means that a default implementation of the service needs to ship with CppMicroServices **OR** each compendium service needs a way to execute work asynchronously that doesn't involve using this service interface.
 
-Limitations of using template classes and functions in service interfaces. The service interface cannot leverage the full expressiveness of C++ templates.
+Limitations of using template classes and functions in service interfaces. The service interface cannot leverage the full expressiveness of C++ templates. Templates cannot be used for the API as that requires compile time knowledge. Returning a value type other than `void` in the `std::future` requires a template wrapper class defined in the service interface header.
 
 ## Alternatives
 
@@ -314,9 +318,5 @@ Application developers integrating with CppMicroServices will not be able to lev
 > Optional, but suggested for first drafts. What parts of the design are still
 TBD?
 
-There is a limitation to the Callable target's function signature and the std::future returned from `post`. Templates cannot be used for the API as that requires compile time knowledge and breaks the service based design.
 
-Returning future<void> and passing in `std::packaged_task<void()>` puts restrictions on API users. For example, to use a packaged_task taking any parameters, users would need to use `std::bind`. <u>Can an API be created to return future<T> and pass in a Callable object with a function signature other than void()? Is it necessary given the use cases and requirements?</u>
-
-A return type of `std::future<std::any>` could support  use cases where a return type other than `void` is required.
 
