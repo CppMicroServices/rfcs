@@ -32,21 +32,21 @@ A generic service to post and wait for asynchronous tasks enables CppMicroServic
 
 ### Use Case 1: CppMicroServices core Framework and compendium services
 
-Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. Two compendium services use asynchronous operations. Declarative Services does this by using a `boost::asio::thread_pool` while Config Admin uses `std::async`.
+Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. Two compendium services use multiple threads to run asynchronous work. Declarative Services does this by using a `boost::asio::thread_pool` while Config Admin uses `std::async`.
 
-Jeff wants to make the same improvements to Config Admin that were made to Declarative Services, namely implementing a thread pool and remove the use of `std::async` for asynchronous tasks. To accomplish this Jeff can migrate the same Declarative Services change, which includes a build-time dependency on boost asio, to Config Admin (**PP1**, **PP2**).  
+Jeff wants to use the same mechanism to execute asynchronous work in the core Framework, Config Admin and Declarative Services as not to maintain three separate asynchronous work mechanisms and to manage the number of threads used across the core Framework and it's compendium services.  There is no way to extend the asynchronous mechanisms used within these modules and make them accessible without deviating from the OSGi spec (**PP1**, **PP2**). 
 
 
 
 ### Use Case 2: Application integration with CppMicroServices
 
-Nicole is an application developer responsible for developing a large scientific computing application. This application has many features which use asynchronous tasks and has at least one thread pool implementation used to run these asynchronous tasks. She uses CppMicroServices within the application and wants to have CppMicroServices use the same thread pool implementation  used throughout the application. Currently it is not possible to control the threads used by CppMicroServices (**PP1**).
+Nicole is an application developer responsible for developing a large scientific computing application. This application has many features which execute tasks asynchronously and has at least one thread pool implementation used to run these tasks. She uses CppMicroServices within the application and wants to have CppMicroServices use the same thread pool implementation used throughout the application (**PP1**). Currently it is not possible to control the threads used internally by CppMicroServices and it's compendium services.
 
 
 
 ### Use Case 3: Executing Asynchronous Tasks
 
-Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks done in CppMicroServices core framework, Declarative Services and Config Admin are need to be waited upon. Most of the asynchronous tasks involve calling back into user code via callbacks and as such cannot be guaranteed to finish in a bounded amount of time. Currently, `std::async` and `boost::asio::post` are being used to execute  async tasks, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::asio::post` needs to provide a way to wait on the result and a way to receive a failure from the async task (**PP3**). 
+Jeff is a CppMicroServices maintainer responsible for CppMicroServices and it's compendium services. All of the asynchronous tasks run in the CppMicroServices core framework, Declarative Services and Config Admin need to be waited upon. Currently, `std::async` and `boost::asio::post` are being used to execute asynchronous tasks, both of which use futures for the calling thread to block on. Any solution which replaces `std::async` or `boost::asio::post` needs to provide a way to wait on the result and a way to receive a failure from the asynchronous task (**PP3**). 
 
 
 
