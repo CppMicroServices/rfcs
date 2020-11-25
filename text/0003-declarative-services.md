@@ -2081,7 +2081,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentManager_Enable.svg" style="width:50%"/>
+<img src="0003-declarative-services/ComponentManagerEnable.svg" style="width:50%"/>
 
 </html>
 
@@ -2089,7 +2089,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentManager_Disable.svg" style="width:50%"/>
+<img src="0003-declarative-services/ComponentManagerDisable.svg" style="width:50%"/>
 
 </html>
 
@@ -2113,23 +2113,23 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/UnsatisfiedReferenceState_Register.svg" style="width:50%"/>
+<img src="0003-declarative-services/UnsatisfiedStateRegister.svg" style="width:50%"/>
 
 </html>
 
-##### SatisfiedState::Activate
+##### RegisteredState::Activate
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedState_Activate.svg" style="width:50%"/>
+<img src="0003-declarative-services/RegisteredStateActivate.svg" style="width:50%"/>
 
 </html>
 
-##### SatisfiedState::DoActivate
+##### ActiveState::Activate
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedState_DoActivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/ActiveStateActivate.svg" style="width:50%"/>
 
 </html>
 
@@ -2137,23 +2137,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedState_Deactivate.svg" style="width:50%"/>
-
-</html>
-
-##### SatisfiedState::DoDeactivate
-
-<html>
-
-<img src="0003-declarative-services/SatisfiedState_DoDeactivate.svg" style="width:30%"/>
-
-</html>
-
-##### ActiveState::DoDeactivate
-
-<html>
-
-<img src="0003-declarative-services/ActiveState_DoDeactivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/SatisfiedStateDeactivate.svg" style="width:50%"/>
 
 </html>
 
