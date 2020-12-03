@@ -6,8 +6,6 @@
 
 ## Summary
 
-A service interface for retrieving bundle manifests
-
 ## Motivation
 
 In applications with services numbering in the hundreds or thousands, the act of reading manifests from bundles can add significant overhead. By providing an implementation for this interface, an application may adopt a strategy for more quickly retrieving these manifests during the install operation.
