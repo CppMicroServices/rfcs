@@ -2019,7 +2019,7 @@ system.
 ### Sequence Diagrams
 
 The following diagrams show the control flow for various events in
-SCR.
+SCR. Note: There are two component configurations in SCR, Singleton and BundleOrPrototype. Only the Singleton configuration is represented in the diagrams.
 
 ##### SCRBundleActivator::Start
 
@@ -2065,7 +2065,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentContextImpl_EnableComponent.svg" style="width:700px"/>
+<img src="0003-declarative-services/ComponentContextEnableComponent.svg" style="width:700px"/>
 
 </html>
 
@@ -2073,7 +2073,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentContextImpl_DisableComponent.svg" style="width:700px"/>
+<img src="0003-declarative-services/ComponentContextDisableComponent.svg" style="width:700px"/>
 
 </html>
 
@@ -2093,11 +2093,17 @@ SCR.
 
 </html>
 
-##### ComponentConfiguration::Resolve
+##### ComponentConfiguration::Initialize
 
 <html>
 
-<img src="0003-declarative-services/ComponentConfiguration_Resolve.svg" style="width:40%"/>
+<img src="0003-declarative-services/ComponentConfigurationInitialize.svg" style="width:50%"/>
+
+</html>##### ComponentConfiguration::Resolve
+
+<html>
+
+<img src="0003-declarative-services/ComponentConfigurationResolve.svg" style="width:40%"/>
 
 </html>
 
@@ -2105,7 +2111,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentConfiguration_GetService.svg" style="width:40%"/>
+<img src="0003-declarative-services/ComponentConfigurationGetService.svg" style="width:40%"/>
 
 </html>
 
