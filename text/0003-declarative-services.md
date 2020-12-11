@@ -1,4 +1,4 @@
-- Start Date: 2018-07-09
+﻿- Start Date: 2018-07-09
 - RFC PR: https://github.com/CppMicroServices/rfcs/pull/1
 - CppMicroServices Issue: https://github.com/CppMicroServices/CppMicroServices/issues/54
 
@@ -2081,7 +2081,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/ComponentManagerEnable.svg" style="width:50%"/>
+<img src="0003-declarative-services/ComponentManagerEnable.svg" style="width:800px"/>
 
 </html>
 
@@ -2089,7 +2089,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/ComponentManagerDisable.svg" style="width:50%"/>
+<img src="0003-declarative-services/ComponentManagerDisable.svg" style="width:800px"/>
 
 </html>
 
@@ -2097,13 +2097,15 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/ComponentConfigurationInitialize.svg" style="width:50%"/>
+<img src="0003-declarative-services/ComponentConfigurationInitialize.svg" style="width:800px"/>
 
-</html>##### ComponentConfiguration::Resolve
+</html>
+
+##### ComponentConfiguration::Resolve
 
 <html>
 
-<img src="0003-declarative-services/ComponentConfigurationResolve.svg" style="width:40%"/>
+<img src="0003-declarative-services/ComponentConfigurationResolve.svg" style="width:800px"/>
 
 </html>
 
@@ -2111,7 +2113,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/ComponentConfigurationGetService.svg" style="width:40%"/>
+<img src="0003-declarative-services/ComponentConfigurationGetService.svg" style="width:800px"/>
 
 </html>
 
@@ -2119,7 +2121,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/UnsatisfiedStateRegister.svg" style="width:50%"/>
+<img src="0003-declarative-services/UnsatisfiedStateRegister.svg" style="width:800px"/>
 
 </html>
 
@@ -2127,7 +2129,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/RegisteredStateActivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/RegisteredStateActivate.svg" style="width:800px"/>
 
 </html>
 
@@ -2135,7 +2137,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/ActiveStateActivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/ActiveStateActivate.svg" style="width:800px"/>
 
 </html>
 
@@ -2143,23 +2145,48 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedStateDeactivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/SatisfiedStateDeactivate.svg" style="width:800px"/>
 
 </html>
 
-##### ReferenceManager::AddingService
+##### ReferenceManager::AddingService static binding policy
 
 <html>
 
-<img src="0003-declarative-services/ReferenceManager_AddingService.svg" style="width:50%"/>
+<img src="0003-declarative-services/ReferenceManagerAddingServiceStatic.svg" style="width:800px"/>
 
 </html>
 
-##### ReferenceManager::RemovedService
+##### ReferenceManager::AddingService dynamic binding policy
 
 <html>
 
-<img src="0003-declarative-services/ReferenceManager_RemovedService.svg" style="width:50%"/>
+<img src="0003-declarative-services/ReferenceManagerAddingServiceDynamic.svg" style="width:800px"/>
+
+</html>
+
+##### ComponentConfiguration::Rebind
+
+<html>
+
+<img src="0003-declarative-services/ComponentConfigurationRebind.svg" style="width:800px"/>
+
+</html>
+
+##### ReferenceManager::RemovedService static binding policy
+
+<html>
+
+<img src="0003-declarative-services/ReferenceManagerRemovedServiceStatic.svg" style="width:800px"/>
+
+</html>
+
+
+##### ReferenceManager::RemovedService dynamic binding policy
+
+<html>
+
+<img src="0003-declarative-services/ReferenceManagerRemovedServiceDynamic.svg" style="width:800px"/>
 
 </html>
 
