@@ -62,9 +62,9 @@ This interface provdes a mechanism for users of CppMicroServices to manage bundl
 ```c++
 AnyMap&& BundleRegistry::FetchBundleManifest(std::string const& location)
 {
-  auto cacheService = /* ... fetch from coreCtx */;
-  if (cacheService) {
-    return cacheService.ManifestForBundle(location);
+  auto manifestCacheService = /* ... fetch from coreCtx */;
+  if (manifestCacheService) {
+    return manifestCacheService->ManifestForBundle(location);
   }
   return AnyMap { any_map::UNORDERED_MAP_CASEINSENSITIVE_KEYS };
 }
