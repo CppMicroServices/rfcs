@@ -30,11 +30,10 @@ class ManifestCacheService
    * @param  bundleLocation the location of the bundle for which to retrieve the manifest.
    *         the value of location is the same as that passed in to
    *         BundleContext::InstallBundles().
-   * @return an r-value reference to an AnyMap suitable for moving into the 
-   *         BundleRegistry, either populated, or if not present in the cache,
-   *         empty.
+   * @return an optional reference to an AnyMap containing the manifest for the bundleLocation,
    */
-  AnyMap&& manifestForBundle(std::string const& bundleLocation) noexcept = 0;
+  std::optional<std::reference_wrapper<AnyMap>> 
+    manifestForBundle(std::string const& bundleLocation) noexcept = 0;
 };
 ```
 
@@ -54,13 +53,13 @@ This interface provdes a mechanism for users of CppMicroServices to manage bundl
     
 
 ```c++
-AnyMap&& BundleRegistry::FetchBundleManifest(std::string const& location)
+std::optional<std::reference_wrapper<AnyMap>> BundleRegistry::FetchBundleManifest(std::string const& location)
 {
   auto manifestCacheService = /* ... fetch from coreCtx */;
   if (manifestCacheService) {
     return manifestCacheService->ManifestForBundle(location);
   }
-  return AnyMap { any_map::UNORDERED_MAP_CASEINSENSITIVE_KEYS };
+  return {};
 }
 
 std::vector<Bundle> BundleRegistry::Install0(
@@ -70,13 +69,19 @@ std::vector<Bundle> BundleRegistry::Install0(
 {
 ...
         auto manifest = FetchBundleManifest(location);
-
-        // Now, create a BundleArchive with the given manifest at 'entry' in the
-        // BundleResourceContainer, and remember the created BundleArchive here for later
-        // processing, including purging any items created if an exception is thrown.
-        barchives.push_back(coreCtx->storage->CreateAndInsertArchive(resCont, 
-                                                                     symbolicName, 
-                                                                     manifest));
+        if (manifest) {
+            // Now, create a BundleArchive with the given manifest at 'entry' in the
+            // BundleResourceContainer, and remember the created BundleArchive here for later
+            // processing, including purging any items created if an exception is thrown.
+            barchives.push_back(coreCtx->storage->CreateAndInsertArchive(resCont, 
+                                                                         symbolicName, 
+                                                                         manifest));
+        }
+        else {
+            barchives.push_back(coreCtx->storage->CreateAndInsertArchive(resCont, 
+                                                                         symbolicName));
+          
+        }
 ...
   return installedBundles;
 }
