@@ -40,13 +40,7 @@ class ManifestCacheService
 
 ###  Integration
 
-This interface provdes a mechanism for users of CppMicroServices to manage bundle manifests outside of the bundles themselves.
-
-* Remove manifest argument from the call stack:
-
-  * Remove optional manifest argument from BundleContext::InstallBundles
-    * BundleRegistry::Install
-      * BundlRegistry::Install0
+This interface provdes a mechanism for users of CppMicroServices to manage bundle manifests outside of the bundles themselves. Within the BundleRegistry code, if a ManifestCacheService is found, query the service for a manifest to use for the location being installed and use it if found.
 
 * Update BundleRegistry::Install0
 
