@@ -39,58 +39,69 @@ class ManifestCacheService
 
 ###  Integration
 
-This interface provdes a mechanism for users of CppMicroServices to manage bundle manifests outside of the bundles themselves. Within the BundleRegistry code, if a ManifestCacheService is found, query the service for a manifest to use for the location being installed and use it if found.
+This interface provdes a mechanism for users of CppMicroServices to manage bundle manifests outside of the bundles themselves. Within the BundleRegistry code, if a ManifestCacheService is found, query the service for a manifest to use for the location being installed and use it if found. This means that there are several ways for a manifest to be specified for installation in the BundleRegistry. These different ways imply a precedence hierarchy for specifying the manifest:
 
-* Update BundleRegistry::Install0
+* Highest precedence: BundleContext::InstallBundles() - a manifest provided as an argument here is always used.
+* ManifestCacheService::manifestForBundle - if no manifest is provided as an argument, the service is consulted and if a manifest is returned, it is used
+* Lowest precedence: manifest embedded within bundle - if a manifest is not provided as an argument, nor returned from the cache service, the manifest is read out of the bundle
 
-  * Find implementation of ManifestCacheService
 
-    * If one exists, retrieve manifest to use
-    * otherwise use empty manifest
-
-  * Pass manifest to CreateAndInsertArchive() as before.
-
-    
 
 ```c++
-std::optional<std::reference_wrapper<AnyMap>> BundleRegistry::FetchBundleManifest(std::string const& location)
+/* From BundleContext */
+std::vector<Bundle> BundleContext::InstallBundles(
+  const std::string& location,
+  const cppmicroservices::AnyMap& bundleManifest)
 {
-  auto manifestCacheService = /* ... fetch from coreCtx */;
-  if (manifestCacheService) {
-    return manifestCacheService->ManifestForBundle(location);
-  }
-  return {};
+...
+  return b->coreCtx->bundleRegistry.Install(location, b, bundleManifest);
 }
 
-std::vector<Bundle> BundleRegistry::Install0(
-  const std::string& location,
-  const std::shared_ptr<BundleResourceContainer>& resCont,
-  const std::vector<std::string>& alreadyInstalled)
+/* From BundleRegistry */
+
+AnyMap Bundleregistry::GetOverrideManifest(std::string const& location,
+                                           AnyMap const& bundleManifest) 
+{
+    if (!bundleManifest.empty())
+      return bundleManifest; // this will make a copy which can be moved into the registry
+    
+    auto emptyManifest = AnyMap { any_map::UNORDERED_MAP_CASEINSENSITIVE_KEYS) };
+    auto manifestCacheService = /* ... fetch from coreCtx */;
+    if (manifestCacheService) {
+      auto manifest = manifestCacheService->manifestForBundle(lcoation);
+      
+      /* an empty map forces the manifest to be read from the bundle */
+      return manifest.value_or(emptyManifest);
+    }
+    
+    /* an empty map forces the manifest to be read from the bundle */
+    return emptyManifest;
+}
+
+std::vector<Bundle> BundleRegistry::Install(std::string const& location,
+  		                                      BundlePrivate*,
+                                            cppmicroservices::AnyMap const& bundleManifest)
 {
 ...
-        auto manifest = FetchBundleManifest(location);
-        if (manifest) {
-            // Now, create a BundleArchive with the given manifest at 'entry' in the
-            // BundleResourceContainer, and remember the created BundleArchive here for later
-            // processing, including purging any items created if an exception is thrown.
-            barchives.push_back(coreCtx->storage->CreateAndInsertArchive(resCont, 
-                                                                         symbolicName, 
-                                                                         manifest));
-        }
-        else {
-            barchives.push_back(coreCtx->storage->CreateAndInsertArchive(resCont, 
-                                                                         symbolicName));
-          
-        }
+  auto overrideManifest = GetOverrideManifest(location, bundleManifest);
 ...
-  return installedBundles;
+  
+  // Populate the resultingBundles and alreadyInstalled vectors with the appropriate data
+  // based on what bundles are already installed
+  auto resCont = GetAlreadyInstalledBundlesAtLocation(bundlesAtLocationRange,
+                                                      location,
+                                                      overrideManifest,
+                                                      resultingBundles,
+                                                      alreadyInstalled);
+
+  // Perform the install, which will move the overrideManifest into the registry if it's not empty, 
+  // or read the manifest out of the bundle otherwise.
+  auto newBundles = Install0(location, resCont, alreadyInstalled, overrideManifest);
+...
+  
 }
 
 ```
-
-
-
-A manifest from the cache is used only if a non-empty manifest is returned. Otherwise, the manifest is read from the bundle.
 
 ## How we teach this
 
