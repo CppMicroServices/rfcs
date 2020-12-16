@@ -68,7 +68,7 @@ AnyMap Bundleregistry::GetOverrideManifest(std::string const& location,
     auto emptyManifest = AnyMap { any_map::UNORDERED_MAP_CASEINSENSITIVE_KEYS) };
     auto manifestCacheService = /* ... fetch from coreCtx */;
     if (manifestCacheService) {
-      auto manifest = manifestCacheService->manifestForBundle(lcoation);
+      auto manifest = manifestCacheService->manifestForBundle(location);
       
       /* an empty map forces the manifest to be read from the bundle */
       return manifest.value_or(emptyManifest);
