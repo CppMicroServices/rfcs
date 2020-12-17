@@ -2077,7 +2077,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ComponentManager::Enable
+##### ComponentManagerImpl::Enable
 
 <html>
 
@@ -2085,7 +2085,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ComponentManager::Disable
+##### ComponentManagerImpl::Disable
 
 <html>
 
@@ -2093,7 +2093,15 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ComponentConfiguration::Initialize
+##### ComponentConfigurationImpl::CreateConfigurationManager
+
+<html>
+
+<img src="0003-declarative-services/ComponentConfigurationCreateConfigurationManager.svg" style="width:800px"/>
+
+</html>
+
+##### ComponentConfigurationImpl::Initialize
 
 <html>
 
@@ -2101,15 +2109,8 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ComponentConfiguration::Resolve
-
-<html>
-
-<img src="0003-declarative-services/ComponentConfigurationResolve.svg" style="width:800px"/>
-
-</html>
-
-##### ComponentConfiguration::GetService
+##### SingletonComponentConfiguration::GetService
+##### BundleOrPrototypeComponentConfiguration::GetService
 
 <html>
 
@@ -2117,7 +2118,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### UnsatisfiedReferenceState::Register
+##### CCUnsatisfiedReferenceState::Register
 
 <html>
 
@@ -2125,7 +2126,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### RegisteredState::Activate
+##### CCRegisteredState::Activate
 
 <html>
 
@@ -2133,7 +2134,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ActiveState::Activate
+##### CCActiveState::Activate
 
 <html>
 
@@ -2141,7 +2142,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### SatisfiedState::Deactivate
+##### CCSatisfiedState::Deactivate
 
 <html>
 
@@ -2149,15 +2150,23 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ReferenceManager::AddingService static binding policy
+##### ReferenceManagerImpl::AddingService binding policy is static reluctant
 
 <html>
 
-<img src="0003-declarative-services/ReferenceManagerAddingServiceStatic.svg" style="width:800px"/>
+<img src="0003-declarative-services/ReferenceManagerAddingServiceStaticReluctant.svg" style="width:800px"/>
 
 </html>
 
-##### ReferenceManager::AddingService dynamic binding policy
+##### ReferenceManagerImpl::AddingService binding policy is static greedy
+
+<html>
+
+<img src="0003-declarative-services/ReferenceManagerAddingServiceStaticGreedy.svg" style="width:800px"/>
+
+</html>
+
+##### ReferenceManagerImpl::AddingService binding policy is dynamic 
 
 <html>
 
@@ -2165,7 +2174,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ComponentConfiguration::Rebind
+##### ComponentConfigurationImpl::RefChangedState(Rebind)
 
 <html>
 
@@ -2173,7 +2182,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 
 </html>
 
-##### ReferenceManager::RemovedService static binding policy
+##### ReferenceManagerImpl::RemovedService static binding policy
 
 <html>
 
@@ -2182,7 +2191,7 @@ SCR. Note: There are two component configurations in SCR, Singleton and BundleOr
 </html>
 
 
-##### ReferenceManager::RemovedService dynamic binding policy
+##### ReferenceManagerImpl::RemovedService dynamic binding policy
 
 <html>
 
