@@ -32,7 +32,8 @@ CppMicroServices provides a container class called **Any** which can hold any ki
 
 ```
 
-
+* Refactor existing parsing logic out of BundleManifest.cpp into utilities to make callable from multiple locations
+* Use existing parsing logic to implement Any::FromJSON as a public API.
 
 ## How we teach this
 
