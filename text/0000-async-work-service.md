@@ -83,20 +83,9 @@ namespace cppmicroservices {
     /**
      *
      */
-    class AsyncWork {
+    class AsyncWorkService {
     public:
-      virtual ~AsyncWork() noexcept = default;
-      
-      /**
-       * Run a std::function<void()> object asynchronously on another thread.
-       *
-       * @param task A std::function<void()> object representing a Callable target.
-       * @return A std::future<void> object to wait on the result of task.
-       * @note There is no guarantee made by this interface that the 
-       * std::future<void> returned will automatically block when it goes out of scope. 
-       * It may or may not depending on the implementation of this method.
-       */
-      virtual std::future<void> post(std::function<void()>&& task) = 0;
+      virtual ~AsyncWorkService() noexcept = default;
       
       /**
        * Run a std::packaged_task<void()> asynchronously on another thread.
@@ -200,24 +189,34 @@ The use of `std::async` can be replaced with a call to `post`.
 template <typename Functor>
 void ConfigurationAdminImpl::PerformAsync(Functor&& f)
 {
-    auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<AsyncWork> 
-    std::lock_guard<std::mutex> lk{futuresMutex};
-    decltype(completeFutures){}.swap(completeFutures);
-    auto id = ++futuresID;
-    incompleteFutures.emplace(id, asyncTaskService.post([this, func = std::forward<Functor>(f), id]
-                                                      {
-                                                          func();
-                                                          std::lock_guard<std::mutex> lk{futuresMutex};
-                                                          auto it = incompleteFutures.find(id);
-                                                          assert(it != std::end(incompleteFutures) &&
-                                                                 "Invalid future iterator");
-                                                          completeFutures.push_back(std::move(it->second));
-                                                          incompleteFutures.erase(it);
-                                                          if (incompleteFutures.empty())
-                                                          {
-                                                              futuresCV.notify_one();
-                                                          }
-                                                      }));
+    auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_ptr<AsyncWorkService> 
+    uint64_t id{};
+    {
+        std::lock_guard<std::mutex> lk{futuresMutex};
+        decltype(completeFutures){}.swap(completeFutures);
+        id = ++futuresID;
+    }
+
+    std::packaged_task<void()> task([id, func = std::forward<Functor>(f), id]() mutable {
+        func();
+        std::lock_guard<std::mutex> lk{futuresMutex};
+        auto it = incompleteFutures.find(id);
+        assert(it != std::end(incompleteFutures) &&
+               "Invalid future iterator");
+        completeFutures.push_back(std::move(it->second));
+        incompleteFutures.erase(it);
+        if (incompleteFutures.empty())
+        {
+            futuresCV.notify_one();
+        }
+    });
+
+    std::future<void> fut = task.get_future();
+    {
+        std::lock_guard<std::mutex> lk{ futuresMutex };
+        incompleteFutures.emplace(id, std::move(fut));
+    }
+    asyncTaskService->post(std::move(task));
 }
 ```
 
@@ -240,22 +239,27 @@ auto asyncTaskService = GetAsyncService();	/// imagine this returns std::shared_
 foo f;
 bar b;
 
-// simple std::function<void()> usage that waits on the returned std::future<void>
-auto fut = asyncTaskService.post([f, b](){ /* do something... */});
-fut.get();
-
 // use a std::packaged_task<void()> and wait on the std::future<void>
 std::packaged_task<void()> task([f, b]() {/* do something */});
 auto pkgtask_future = task.get_future();
 asyncTaskService.post(std::move(task));
 pkgtask_future.get();
 
-// to use a Callable target with a function signature other than void(), use std::bind...
-auto fut2 = asyncTaskService.post(std::bind([](std::unique_ptr<foo> f, std::unique_ptr<bar> b)
-                                            { /* do something */},
-                                            std::make_unique<foo>(), std::make_unique<bar>()));
-fut2.get();
-
+// use a std::packaged_task<void(double)> wrapped in a std::packaged_task<void()>
+// for use with the service and wait on the std::future<void>.
+//
+// this demonstrates that you can still create arbitrary packaged_task objects which
+// require parameters or have return types and still be able to use the AsyncWorkService
+// to perform the work on another thread.
+using ActualTask = std::packaged_task<void(double)>;
+using PostTask = std::packaged_task<void()>;
+double my_val = 2.0;
+ActualTask task2([](double a) {/* do something */});
+auto task2_future = task2.get_future();
+PostTask task2runner([my_val, task2Ptr = std::make_shared<ActualTask>(std::move(task2))]() mutable {
+    (*task2Ptr)(my_val);
+});
+asyncTaskService->post(std::move(task2runner));
 ```
 
 4. CppMicroServices can use this service implementation instead of whatever default async mechanism is used internally.
@@ -317,6 +321,3 @@ Application developers integrating with CppMicroServices will not be able to lev
 
 > Optional, but suggested for first drafts. What parts of the design are still
 TBD?
-
-
-
