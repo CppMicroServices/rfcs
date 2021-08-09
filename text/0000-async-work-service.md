@@ -88,8 +88,8 @@ namespace cppmicroservices {
       virtual ~AsyncWorkService() noexcept = default;
       
       /**
-       * Run a std::packaged_task<void()> asynchronously on another thread.
-       * The std::future<void> associated with the std::packaaged_task<void()>
+       * Run a std::packaged_task<void()> (optionally on another thread asynchronously).
+       * The std::future<void> associated with the std::packaged_task<void()>
        * task object will contain the result from the task object.
        *
        * @param task A std::packaged_task<void()> wrapping a Callable target
