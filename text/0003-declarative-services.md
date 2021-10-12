@@ -115,6 +115,8 @@ time to auto-generate code included in the bundle. Both the declared
 metadata and the auto generated code are utilized by the implemented
 bundle at runtime to manage services on behalf of the client bundles.
 
+Configuration Properties for the managed services are initialized and updated 
+according to the OSGI ConfigurationAdmin specification.  
 
 ## Requirements Analysis
 
@@ -153,6 +155,23 @@ bundle at runtime to manage services on behalf of the client bundles.
 <li>Create distributed systems</li>
 <li>Create scalable, extensible and reactive systems</li>
 </ol></td>
+</tr>
+<tr class="odd">
+<td><p>3</p></td>
+<td><p>High</p></td>
+<td><p>Advanced User</p></td>
+<td><p><em>What:</em> Create a service that can receive configuration properties at activation through constructor injection.<br />
+<em>Why:</em>
+Prevent activation of a service until its configuration object is available.</p?
+</td>
+</tr>
+<tr class="even">
+<td><p>4</p></td>
+<td><p>High</p></td>
+<td><p>Advanced User</p></td>
+<td><p><em>What:</em> Create a service that can receive updated configuration properties after activation without having to be deactivated and reactivated.<br />
+<em>Why:</em>Update the service properties of a service after the service has been activated.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -250,6 +269,35 @@ create a CppMicroService bundle with the following workflow.
 3.  The action could be as simple as constructing a new service object
     by passing tracked service dependencies as constructor arguments.
 
+#### UC5: Service Requiring Configuration Properties to be Updated After Activation
+
+##### User Role and Goal
+
+Chuck is a service author responsible for providing users with a Virtual File System. Users can store their files with different online providers.  Chuck would like the VFS service to start up without configuration information and for the configuration information (like the particular online provider the user would like to use) to be provided later after the user logs in. Chuck needs a way to update the service properties after the service has been activated. Chuck's service is a DS service so without Configuration Admin functionality there is no way for Chuck to update the service properties after activation because he doesn't have access to the service registration object. To solve this problem Chuck has developed a workaround. He has created callbacks in the VFS service that can be called by the login service to update properties. (PP6) Since he doesn't have access to the service registration object he has to maintain a copy of the service properties in the login service. (PP7)
+
+#### UC6: Service With Dependency on Configuration Object
+
+##### User Role and Goal
+
+Andy has developed an application that reads command line arguments and uses those inputs to update the service properties of several services at startup. The services for which properties are being updated are DS services that may have already been activated. Andy doesn't have a way to update the services after activation because he doesn't have access to the service registration object for those services. Also Andy doesn't have any way of preventing a service from being activated before its service properties are available. (PP8) Andy would like services who need startup configuration to be able to specify a dependency on the startup configuration object so they wouldn't be activated until after their configuration properties were available. 
+
+##### Current workflow:
+
+1.  Create an Activator with a BundleActivator class to publish a
+    service that provides business functionality. (**PP1**)
+2.  Add a Service Listener to keep track of the target services
+    (**PP1**, **PP2**) the extender is interested in
+      - When a target service becomes available, push it onto a list and
+        perform an appropriate action (**PP5**).
+      - When a target service becomes unavailable, remove it from the
+        tracked list and perform an appropriate action (**PP5**).
+3.  The action could be as simple as constructing a new service object
+    by passing tracked service dependencies as constructor arguments.
+4.  Add methods to the public API of services to enable configuration 
+    information to be changed after activation. (PP6,PP8) Maintain a copy
+    of the configuration information for each service that requires 
+    an update (PP7).
+
 ### Pain Point Summary
 
 PP1: Using the framework requires the developers to write boilerplate
@@ -265,6 +313,18 @@ bundle unaware of the service providers and consumer bundles.
 PP5: Service consumers have to write non-trivial code to respond to the
 dynamic availability of service
 dependencies.
+PP6: Adding callback methods to the public API for a service so that the
+service properties can be updated after activation makes the public API
+messy and confusing.
+PP7: Maintaining a copy of the service properties in a service or application
+is error prone and means those updated properties are unavailable to other
+services or applications. The only way to solve this would be to add new 
+public APIs to the service which could violate the single responsibility
+principle (from SOLID principles). 
+PP8: Preventing a service from activating until the configuration object 
+is available could be accomplished by introducing a configuration 
+interface which the service depends on. Would need one of these for every 
+service. Unnecessary complication. 
 
 ### Requirements
 
@@ -282,6 +342,12 @@ dependencies.
 | R10\_Decoupled                          | Decoupled from the core CppMicroServices framework. No requirements imposed on the framework.                                                                                                      | OSGi requires that features mentioned in the OSGi compendium specification are implemented as a layer of abstraction on top of the framework, without breaking any existing framework functionality                                                                                                                     | Must Have |
 | R11\_Linker                             | The solution must not rely on the native dynamic linker for dependency analysis, nor should it interfere with the dynamic loader's functionality.                                                  | One of the fundamental design principle for native OSGi implementation. Linker information embedded in the shared library is not only platform specific, it could vary on the same platform based on the toolchain used. This increases our system complexity by introducing a third party dependency into our runtime. | Must Have |
 | R12\_Backwards\_Compatibility           | Service Providers using Declarative Service should have no affect on Service Consumers using the core framework.                                                                                   | OSGi requires that features mentioned in the OSGi compendium specification are implemented as a layer of abstraction on top of the framework, without breaking any existing framework functionality                                                                                                                     | Must Have |
+| R13\_Constructor\_Injection           | Provide a service's configuration using the service implementation's constructor when the service is activated.                                                                                   | PP6                                                                                                                     | Must Have |
+| R14\_Update\_Configuration           | Update a service's configuration after the service is activated without deactivating and reactivating the service. This requires that the service author provide a "Modified" method that can be called by DS while the service is active to update configuration.                                                                                  | PP6,PP7                                                                                                                     | Must Have |
+| R15\_Config\_Dependency           |Implement the configuration-policy feature. This controls whether service activation is dependent on configuration objects.                                                                                   |                                                                                                                      | Must Have |
+| R16\_Multiple\_Config           |Services may be dependent on more than one configuration.                                                                                   | PP8                                                                                                                     | Must Have |
+| R17\_Factory\_Pids          |The solution should support factory PIDS when configuration information is needed for services that can be instantiated multiple times.                                                                                  |                                                                                                                     | Must Have |
+| R18\_Update\_Notification         |Notify user application that the configuration changes they have requested have been applied to the service.                                                                                |                                                                                                                     | Must Have |
 
 #### Requirements Delivery for this iteration
 
@@ -292,11 +358,17 @@ dependencies.
 * R5_Lazy_Instantiation
 * R6_Dependency_Count
 * R7_Introspection
-* R9_Dependency_Information_Visibility
-* R10_OSGi_Spec
-* R11_Decoupled
-* R12_Linker
-* R13_Backwards_Compatibility
+* R8_Dynamic_Rebinding
+* R9_OSGi_Spec
+* R10_Decoupled
+* R11_Linker
+* R12_Backwards_Compatibility
+* R13_Constructor_Injection
+* R14_Update_Configuration
+* R15_Config_Dependency
+* R16_Multiple_Config
+* R17_Factory_Pids
+* R18_Update_Notification
 
 ## Functional Design
 
@@ -306,20 +378,22 @@ The design proposed in this section simplifies authoring services for
 microservices developers. They will be able to implement
 their business logic as services and declare service information in the
 bundle's metadata. Operations such as service registration, lookup, and
-dependency management are automatically handled, freeing up the
-developer to focus on the business logic.
+service dependency management and configuration property management are 
+automatically handled, freeing up the developer to focus on the business logic.
 
 ### <u>Main Functional Design Description</u>
 
 The proposed design implements a service component model, as described
-in the [OSGi Declarative Services
-specification](https://osgi.org/download/r6/osgi.cmpn-6.0.0.pdf#page=289).
+in the [OSGi Declarative Services specification](https://osgi.org/download/r6/osgi.cmpn-6.0.0.pdf#page=289).
 A service component model uses a declarative model for publishing,
 finding and binding to services. This model simplifies the task of
 authoring services by performing the work of registering the service and
 handling service dependencies. This minimizes the amount of code a
 programmer has to write; it also allows lazy loading of bundle code and
 lazy instantiation of service implementations.
+
+The proposed design manages configuration properties for services by 
+implmenting the functionality described in the [OSGI Configuration Admin specification](http://docs.osgi.org/specification/osgi.cmpn/7.0.0/service.cm.html).
 
 A Service Component is the basic building block of the service component
 model. A service component contains a description and an implementation.
@@ -348,11 +422,12 @@ component is contained within the life cycle of the bundle it is
 contained in. Components can be created, satisfied and activated only
 when they are enabled.
 
-A service component becomes satisfied when all its service dependencies
-become available in the framework. Once the service component is
-satisfied, if the component description specifies that it provides a
-service, the component is registered with the framework and the
-component state is set to "REGISTERED". If the component type is
+A service component becomes satisfied when all its dependencies
+become available in the framework. Dependencies include 
+dependencies on other services and dependencies on configuration objects. 
+Once the service component is satisfied, if the component description 
+specifies that it provides a service, the component is registered with the 
+framework and the component state is set to "REGISTERED". If the component type is
 "immediate", the component is activated as soon as the registration is
 finished. If the component type is "delayed", the component is not
 activated until a call to GetService is received. An instance of the
@@ -409,6 +484,10 @@ elements of a JSON object representing the service component:
 |service|map|A JSON object in the format described in the service element specification below.|No|null object|
 |references|array|An array of JSON objects, each object in the format described in the references element specification below.|No|null object|
 |inject-references|bool|A value indicating whether the references need to be injected into the component instance. Valid values are  <br> false - References are not injected into the instance, however, they are available through the lookup strategy if the instance needs to retrieve them. See LocateService(s) API on ComponentContext class. <br> true - References are injected using constructor injection. See Constructor Injection. If the "policy" key of the reference is "dynamic, then Bind/Unbind methods of the reference are also used. The convention for the methods is "Bind" & "Unbind", where ReferenceName is the value specified by the "name" key. See Dependency Injection|No|true|
+|configuration-policy|string|Controls whether component configurations must be satisfied depending on the presence of a corresponding Configuration object in Configuration Admin service. A corresponding configuration is a Configuration object where the Persistent Identity (PID) is the name of the component. Valid values are  <br> optional - Use the corresponding Configuration object if present but allow the component to be satisfied even if the corresponding Configuration object is not present.<br> require - There must be a corresponding Configuration object for the component configuration to become satisfied.<br>ignore - Always allow the component configuration to be satisfied and do not use the corresponding Configuration object even if it is present|No|"ignore". Note: the OSGI spec specifies a default value of "optional" for configuration-policy but for backwards compatibility reasons, a default of "ignore" has been implemented.|
+|configuration-pid|array|An array of configuration PIDs to be used for the component in conjunction with Configuration Admin. |No|None|
+|factory|string|If set to a non-empty string, it indicates that this component is a factory component. This attribute is the factory id for the factory component. This identifier can be used by a bundle to associate the factory with externally defined information.|No|Empty string|
+|factory-properties|object|These are only used for factory components. These are the service properties that will be registered for the factory component.|No|For factory components, DS adds:<br>component.name-component name<br>component.factory-component factory id|
 
 **service**  
 The service element is a child of the component object and describes the
@@ -574,6 +653,29 @@ See <a href="Declarative_Services_RFA#Dependency_Injection" title="wikilink">Dep
                 "properties": {},
                 "type": "object"
               },
+              "configuration-policy": {
+                "default": "ignore",
+                "id": "/properties/scr/properties/components/items/properties/configuration-policy",
+                "type": "string"
+              },
+              "configuration-pid": {
+                "id": "/properties/scr/properties/components/items/properties/configuration-pid",
+                "items": {
+                    "id": "/properties/scr/properties/components/items/properties/configuration-pid/items",
+                    "type": "string"
+                },
+                "type": "array"
+              }, 
+              "factory": {
+                 "default": "",
+                 "id": "/properties/scr/properties/components/items/properties/factory",
+                 "type": "string"
+              },
+              "factory-properties": {
+                "id": "/properties/scr/properties/components/items/properties/factory-properties",
+                "factory-properties": {},
+                "type": "object"
+              },
               "references": {
                 "id": "/properties/scr/properties/components/items/properties/references",
                 "items": {
@@ -688,9 +790,15 @@ schema:
             "immediate": true,                                      // specifies the component type
             "enabled": true,                                        // Specifies if the component is default enabled
             "implementation-class": "sample::impl::LogLookupImpl",  // Specifies the fully qualified name of the implementation class
-            "properties": {                                         // Specifies the custome properties for the service component
+            "properties": {                                         // Specifies the custom properties for the service component
                 "Service.description": "Sample Service",
                 "Service.vendor": "Foo Inc"
+            },
+            "configuration-policy": "optional",                     // Specifies the configuration policy
+            "configuration-pid": ["sample.foo","sample.bar"],       // List of configuration objects on which the component is dependent
+            "factory" : "factory id",                               // Indicates this is a factory component
+            "factory-properties" : {                                // Specifies the custom properties for the factory component
+                 "abc" : "123"
             },
             "service": {                                            // Specifies the information needed for service registration
                 "scope": "singleton",                               // Specifies the scope of the registered service
@@ -749,6 +857,25 @@ activated.
 If the deactivate method throws an exception, SCR will log an error
 message containing the exception and the deactivation of the component
 configuration will continue.
+
+##### <u>Modified Method</u>
+
+The service component implementation class can implement a Modified
+method with the following signature to receive a callback
+when the component's configuration properties change.The component instance
+receives its component context object as an argument to the callback
+methods.
+
+<u>Method signature</u>
+
+``` cpp
+void Modified(const std::shared_ptr<ComponentContext>& context, const std::shared_ptr<cppmicroservices::AnyMap>& configuration);
+```
+
+<u>Exception handling</u>  
+If a Modified method throws an exception, DS will log an error message containing the 
+exception to the Log Service, deactivate the component and reactivate it with 
+the new configuration.
 
 #### <u> Component Context </u>
 
@@ -860,15 +987,29 @@ the component is deactivated will result in a std::runtime\_exception.
 A service component can opt into the dependency injection mechanism by
 setting the value for "inject-references" key in the component
 description to true (Note that this is the default behavior). If the
-value for "inject-references" is true, all references are injected into
-the component instance and if the value is false, none of the references
+value for "inject-references" is true, all service references are injected into
+the component instance and if the value is false, none of the service references
 are injected.  
+
+A service component can also opt into injection of configuration properties
+into the component instance. 
+* If the configuration-policy is "require" then the all of the configuration 
+properties for the configuration objects listed in the configuration-pid 
+attribute will be injected into the component instance. 
+* If the configuration-policy is "optional" all of the configuration properties for
+the configuration objects listed in the configuration-pid attribute which
+happen to be available when the service component becomes satisfied will be
+injected into the component instance.
+* If the configuration-policy is "ignore", no configuration properties will
+be injected into the component instance. 
 
 If the value for "inject-references" is true, the following is a
 sequence of calls received by a service component instance during a
 component activation:
 
-* Constructor with references as arguments is called. Refer to the
+* Constructor with references as arguments is called. If configuration
+properties are also being injected the constructor will include
+the configuration property argument. Refer to the
 [\#Constructor Injection](#Constructor_Injection "wikilink") section
 
 * "Activate" method is invoked.
@@ -881,7 +1022,9 @@ However, If the value for "inject-references" is false, the following is
 a sequence of calls received by a service component instance during a
 component activation:
 
-* Default constructor
+* Default constructor unless configuration properties are being injected. In
+that case the constructor with the configuration property argument will be 
+called.
 
 * "Activate" method is invoked
 
@@ -908,11 +1051,75 @@ component description, the constructor must look like the following:
 
 ``` cpp
 public:
-  ServiceComponentImpl(const std::shared_ptr<FooNamespace::Bar>& bar, const std::shared_ptr<FooNamespace::Baz>& baz) :
+  ServiceComponentImpl(const std::shared_ptr<FooNamespace::Bar>& bar, const std::shared_ptr<FooNamespace::Baz>& baz) :  
   mBar(bar),
   mBaz(baz)
   {}
 ```
+If configuration properties are also being injected then the configuration 
+property argument precedes the references as follows:
+
+``` cpp
+public:
+  ServiceComponentImpl(const std::shared_ptr<cppmicroservices::AnyMap>& config,const std::shared_ptr<FooNamespace::Bar>& bar, const std::shared_ptr<FooNamespace::Baz>& baz) :
+  mconfig(config),  
+  mBar(bar),
+  mBaz(baz)
+  {}
+```
+
+If the *inject-references* element is set to false in the component 
+description but the configuration properties are being injected then 
+the component instance must implement a constructor that takes in the
+configuration property argument as follows:
+``` cpp
+public:
+  ServiceComponentImpl(const std::shared_ptr<cppmicroservices::AnyMap>& config) :
+  mconfig(config)  
+   {}
+```
+A service could be dependent on more than one configuration object. 
+The AnyMap input parameter that is passed to the constructor is a merged map
+that contains all the configuration information from all of the configuration
+objects on which the service is dependent and which also includes the 
+component properties. If a property in one configuration object has the same
+name as a property in another configuration object or the same name as one 
+of the component properties then the following precedence applies (listed
+from highest precedence to lowest)
+
+  - properties retrieved from Configuration Admin. If more than one 
+    configuration object is retrieved from Configuration Admin then the 
+    precedence is determined by the order in which they appeared in the 
+    configuration-pid attribute. The first item in the configuration-pid 
+    list has the lowest precedence. 
+  - properties specified in the component description. Only user defined 
+    properties in the component element are configuration properties that 
+    may appear in a configuration object. 
+
+We don't have a use case for the items on the  following list to be included
+in a configuration object. In the future if a use case presents itself, 
+these properties may be added to the list of properties that may be included 
+in a configuration object. For now they may not appear in a configuration object.
+
+  - references target property - a filter expression that constrains the set 
+    of target services that may satisfy this dependency. 
+  - references cardinality property - Can be used to raise the minimum 
+    cardinality of a reference from it's initial value. 0..1 can be raised 
+    to a 1..1. We do not currently support higher levels of cardinality. 
+  - reference policy-option - greedy or reluctant
+
+The following items in the component element may not appear in a configuration 
+object. These attributes cannot be changed without a rebuild. 
+
+  - name
+  - implementation-class
+  - enabled
+  - immediate
+  - factory
+  - configuration-policy, configuration-pid
+  - reference element (name, interface, cardinality, policy, policy option, target, scope, bind,unbind, updated, etc)
+  - service element (scope, interface)
+  - activate, activation-fields, init,deactivate, modified
 
 #### <u> Bind & Unbind Callbacks </u>
 
@@ -1214,7 +1421,116 @@ descriptions.
 
   void UnbindReference(const std::string& name, const ServiceReferenceBase& sRef)
   ```
+#### <u>ConfigurationListener Interface</u>
 
+Configuration Admin can update interested parties of changes in its repository. Configuration 
+Listener services are registered with the service registry.
+
+There are two types of Configuration Listener services:
+
+  - ConfigurationListener - The default Configuration Listener receives events 
+    asynchronously from the method that initiated the event and on another thread.
+  - Synchronous ConfigurationListener -  A Synchronous Configuration Listener is 
+    guaranteed to be called on the same thread as the method call that initiated the event.
+
+DS only registers a ConfigurationListener at this time. No support is provided for the 
+Synchronous ConfigurationListener.
+
+The Configuration Listener service will receive ConfigurationEvent objects if important 
+changes take place. Configuration Admin calls the configurationEvent method for all 
+ConfigurationListeners for all changes to the repository. It is up to the ConfigurationListener
+to determine if this event requires action. DS maintains a listenersMap which contains a callback
+method for each pid that components it is managing are dependent upon. When DS starts a bundle 
+it registers the pids each component is dependent upon in the listenersMap. When a configurationEvent
+is received DS searches its listenersMap to determine if the pid is one for which action is required.
+
+ConfigurationListener class
+  ```cpp
+enum class ConfigurationEventType
+{
+/* The ConfigurationEvent type for when a Configuration object has been
+* updated
+*/
+CM_UPDATED = 1,
+ 
+/* The ConfigurationEvent type for when a Configuration object has been
+* removed
+*/
+ 
+CM_DELETED = 2
+};
+ 
+/**
+* The ConfigurationEvent object is passed to the ConfigurationListener when
+* the configuration for any service is updated or removed by ConfigurationAdmin
+*/
+class ConfigurationEvent
+{
+public:
+ConfigurationEvent(const ServiceReference<ConfigurationAdmin> configAdmin,
+const ConfigurationEventType type,
+const std::string factoryPid,
+const std::string pid)
+: configAdmin(std::move(configAdmin))
+, type(type)
+, factoryPid(std::move(factoryPid))
+, pid(std::move(pid))
+{}
+ 
+/**
+* Get the ServiceReference object of the Configuration Admin Service that created
+* this event.
+*/
+const ServiceReference<ConfigurationAdmin>& getReference() const { return configAdmin; }
+/**
+* Get the PID of this ConfigurationEvent.
+*/
+const std::string& getPid() const { return pid; }
+/**
+* Get the Factory PID which is responsible for this Configuration.
+*/
+const std::string& getFactoryPid() const { return factoryPid; }
+/**
+* Get the type of this Configuration.
+*/
+ConfigurationEventType getType() const { return type; }
+ 
+private:
+const ServiceReference<ConfigurationAdmin> configAdmin;
+const ConfigurationEventType type;
+const std::string factoryPid;
+const std::string pid;
+};
+/**
+* The ConfigurationListener interface is the interface that services should implement
+* to receive updates from the ConfigurationAdmin implementation for all configuration
+* updates. This interface is used by Declarative Services to receive updates to
+* configuration objects for services that are managed by DS.
+*/
+class ConfigurationListener
+{
+public:
+/**
+* Called whenever the Configuration for any service is updated or removed from ConfigurationAdmin,
+* and when the ConfigurationListener is first registered with the Framework, to provide the initial Configuration.
+*/
+virtual void configurationEvent(const ConfigurationEvent& event) noexcept = 0;
+virtual ~ConfigurationListener() = default;
+};
+  ```
+The ConfigurationEvent input parameter in the configurationEvent method has:
+
+  - configAdmin is the service reference for the ConfigurationAdmin service that generated the 
+    ConfigurationEvent. 
+  - type: 
+      - CM_DELETED  - the configuration object has been deleted.
+      - CM_UPDATED - the configuration object has been removed.
+      - CM_LOCATION_CHANGED (out of scope. No support provided)
+  - factoryPid - The factory pid for the configuration object which has changed. Takes the form   - factorycomponentname~instancename. This field must be null if pid is not null.
+  - pid - The Persistent Identity (pid) for the configuration object which has changed. Will 
+    be null if the factoryPid is not null. 
+
+Both factoryPid and pid cannot be null. 
 ### <u>Design Cases</u>
 
 ##### <u>DC1 : Service provider bundle </u>
@@ -1395,7 +1711,132 @@ The following requirements are satisfied:
     }
 }
 ```
+##### <u>DC5 : Service provider bundle with Configuration dependency </u>
 
+###### Proposed Workflow
+
+1.  Add a CMakeList.txt file with the following content
+    `usFunctionCreateDeclarativeServicesBundleWithResources(Foo SOURCES Foo.cpp RESOURCES manifest.json)`
+
+2.  Remove the bundle activators.
+
+3.  The service component description to the bundle's manifest.json file would resemble something like the following:
+
+``` json
+{
+    "scr": {
+        "version": 1,
+        "components": [{
+            "enabled": true,
+            "immediate": true,
+            "implementation-class": "Foo::FooImpl",
+            "configuration-policy": "require",
+            "configuration-pid": [ "startup.configuration" ],
+            "service": {
+                "interfaces": ["test::CAInterface"]
+            }
+        }]
+    }
+}
+```
+The .hpp file  for Foo::FooImpl could have the following elements. Note the constructor 
+with the AnyMap input parameter which enables injection of the configuration properties.
+``` cpp
+#ifndef _FOO_FOOIMPL_HPP_
+#define _FOO_FOOIMPL_HPP_
+ 
+#include "TestInterfaces/Interfaces.hpp"
+#include "cppmicroservices/servicecomponent/ComponentContext.hpp"
+#include <mutex>
+ 
+using ComponentContext = cppmicroservices::service::component::ComponentContext;
+ 
+namespace Foo{
+    class FooImpl : public test::CAInterface
+    {
+    public:
+        FooImpl(const std::shared_ptr<cppmicroservices::AnyMap>& props)
+        : properties(props)
+        {}
+        void Modified(const std::shared_ptr<ComponentContext>& context,
+            const std::shared_ptr<cppmicroservices::AnyMap>& configuration);
+        ~FooImpl() = default;
+ 
+    private:
+        std::mutex propertiesLock;
+        std::shared_ptr<cppmicroservices::AnyMap> properties;
+    };
+}  // namespace Foo
+ 
+#endif // _FOO_FOOIMPL_HPP_
+```
+The .cpp file  for Foo::FooImpl could have the following elements. Note the Modified method 
+with the AnyMap input parameter which enables updates of configuration properties for the 
+component instance without activating and deactivating the component. 
+
+``` cpp
+#include "FooImpl.hpp"
+#include <iostream>
+ 
+namespace Foo{
+ 
+void FooImpl::Modified(
+   const std::shared_ptr<ComponentContext>& /*context*/,
+   const std::shared_ptr<cppmicroservices::AnyMap>& configuration)
+{
+    std::lock_guard<std::mutex> lock(propertiesLock);
+    properties = configuration;
+}
+ 
+} //namespace Foo
+```
+To create an instance of the component the application author will create an AnyMap 
+with the configuration properties for the startup.configuration object and create the 
+Configuration object in ConfigAdmin as follows:
+
+``` cpp
+//configAdmin variable in this example contains a reference to the Configuration Admin Service.//
+//Start Foo (details not shown). After starting the bundle the
+// DS state will be UNSATISFIED_REFERENCES. DS has not constructed the Foo::FooImpl service
+// because it is not satisfied. It is waiting for the startup.configuration
+// configuration object to become available.
+ 
+// Create an AnyMap with one or more properties
+cppmicroservices::AnyMap props(cppmicroservices::AnyMap::UNORDERED_MAP_CASEINSENSITIVE_KEYS);
+const std::string startupProp1Value { "startupProp1Value" };
+props["startupProp1"] =  startupProp1Value;
+ 
+// GetConfiguration gets an empty configuration object. No notification is sent to DS as a result of this call.
+auto configuration = configAdmin->GetConfiguration("startup.configuration"); 
+ 
+// The Update method updates the startup.configuration object with the startupProp1 property. A notification
+// is sent to DS telling DS that the startup.configuration object has been updated. 
+configuration->Update(props);  
+```
+After the execution of the Update method in the previous code snippet, Foo::FooImpl is in the ACTIVE state. 
+The constructor was called with an AnyMap input parameter containing:
+
+  - the component properties. None were included in the manifest.json file but DS always adds component.name
+    and component.id
+     - component.name = Foo::FooImpl
+     - component.id = unique id created by DS.
+  - startup.configuration properties (startupProp1 in this example).
+
+ The Service Registration properties in the framework have also been updated with the same 3 properties.
+
+###### Notes
+
+The following requirements are satisfied:
+
+1.  R13\_Constructor\_Injection : Provide a service's configuration using the service 
+    implementation's constructor when the service is activated.
+2.  R14\_Update\_Configuration : Update a service's configuration after the service is 
+    activated without deactivating and reactivating the service. This requires that the 
+    service author provide a "Modified" method that can be called by DS while the service 
+    is active to update configuration.
+3.  R15\_Config\_Dependency : Implement the configuration-policy feature. This controls 
+    whether service activation is dependent on configuration objects.   
+                                                                                |                         
 ### <u>Special Considerations</u>
 
 #### <u>Compatibility</u>
@@ -1492,6 +1933,26 @@ bundles.
 </tr>
 </tbody>
 </table>
+
+#### Configuration Admin Interaction
+
+DS handles configuration object dependencies much the same way that it handles service 
+reference dependencies for the component. A service with service reference dependencies 
+will not be satisfied until all of the service references are satisfied. A service with  
+configuration object dependencies will not be satisfied until all of its configuration 
+objects are available. A component with configuration object dependencies will not be 
+registered until all of those configuration objects are available and all of it's service 
+references are satisfied. Changes to configuration objects on which the component is dependent 
+can result in the component becoming unsatisfied just like changes to the service references 
+can result in a component becoming unsatisfied.
+
+DS implements a ConfigurationListener interface in order to receive updates from ConfigurationAdmin
+when configuration objects change. Configuration Admin calls the configurationEvent method 
+of the ConfigurationListener interface when a configuration object is deleted or updated. When 
+DS receives the configurationEvent it determines if this event affects any of the service components 
+that DS is managing and if so, processes the configuration object change. This could mean updating 
+the component using the component's Modified method or deactivating and reactivating the component 
+if no Modified method is provided. 
 
 #### Lazy Loading and Instantiation of Service objects
 
@@ -1596,7 +2057,7 @@ is failed and a nullptr is returned to the service consumer.
 
 ### Functional Units
 
-The following diagram shows the functional units inside the declarative
+The following two diagrams show the functional units inside the declarative
 services runtime bundle and their interaction with the external
 components  
 
@@ -1605,10 +2066,18 @@ components
 <img src="0003-declarative-services/Functional_Units_Interaction.svg" style="width:80%"/>
 
 </html>
+The following diagram shows the functional units inside the declarative 
+services runtime bundle that interact with Configuration Admin
+<html>
 
+<img src="0003-declarative-services/functionalunits.svg" style="width:80%"/>
+
+</html>
   - BundleActivator: This unit receives the start and stop calls from
     the framework when the DS bundle is started and stopped. The unit is
-    responsible for setting up and tearing down the DS runtime system.
+    responsible for setting up and tearing down the DS runtime system 
+    including creating the ConfigurationNotifier object and registering
+    the ConfigurationListener interface with Configuration Admin.
   - BundleListener: This unit receives the bundle events from the
     framework when any bundle is installed, started, stopped, or
     uninstalled in the framework. The unit is responsible for creating
@@ -1635,7 +2104,25 @@ components
     machine using the state design pattern. All access to data from this
     object is through the state object associated with this object. The
     state transition is atomic and includes the side effects of the
-    state transition.
+    state transition. This unit is responsible for registering a callback
+    function (ConfigChangedState) with ConfigurationNotifier for each 
+    configuration object on which it is dependent. ConfigurationNotifier 
+    will call these callback functions when ConfigurationAdmin notifies 
+    ConfigurationListener that a configuration object has been  updated 
+    or deleted. 
+  - ConfigurationListener: Receives configurationEvent notifications from 
+    ConfigurationAdmin whenever a configuration object is updated or deleted. 
+    ConfigurationListener notifies ConfigurationNotifier who then determines 
+    whether or not this is an event for which it has a listener and if so calls 
+    the callback function to send the notification of the changed configuration 
+    object. The configurationEvent method does not return to the caller until 
+    all of it's processing is complete. If the change to the configuration object 
+    results in the Modified method in the component instance being called the 
+    Modified method has already been called when the configurationEvent method 
+    returns. The configurationEvent method is threadsafe and may be called by more 
+    than one thread simultaneously. All exceptions will be trapped and logged. 
+  - ConfigurationManager: Manages the properties for the component and determines 
+    whether or not the configuration object dependencies are satisfied. 
   - ReferenceManager: This unit tracks a dependency of the component by
     implementing the ServiceTracker interface. All data access is
     protected by a mutex. No locks are held while calls to notify the
@@ -1677,6 +2164,11 @@ changes
 5.  Create and destroy the task queue and dedicated thread used for
     serving the enable and disable requests from the
     ServiceComponentRuntime service.
+6.  Create the ConfigurationNotifier object. Only one ConfigurationNotifier 
+    object is created. This object contains a map of all listeners of configuration 
+    object changes.
+7.  Publish the ConfigurationListener interface to receive update notifications 
+    from Configuration Admin.
 
 <small>**Concurrency Note**  
 </small>
@@ -1700,6 +2192,12 @@ description found in the bundle.
 
 2.  Populate the shared ComponentRegistry with the ComponentManager
     objects
+
+3.  Parse the manifest.json attributes including configuration-policy,
+    configuration-pid, factory and factory-properties. Both the 
+    configuration-policy and configuration-pid must be present if 
+    either of them is present. If only one is present, the 
+    configuration policy is set to "ignore".
 
 <small>**Concurrency Note**  
 </small>
@@ -1833,18 +2331,55 @@ service.
     component configuration
 3.  Implement the ServiceFactory interface to facilitate lazy loading of
     the bundle binary and lazy instantiation of the service object.
+4.  Manage the Configuration object dependencies when deciding if a component is satisfied 
+    or not. A component with configuration-policy = "require" for example will have one or 
+    more configuration object dependencies that must be satisfied before the component can 
+    be satisfied. A Configuration object dependency is satisfied if the Configuration object 
+    exists in the ConfigurationAdmin repository. 
 
 <small>**Concurrency Note:**  
 </small>
 
 1.  <small>State transitions are atomic, so there is no interleaving of
     transition methods.</small>
-2.  <small>A class named TransitionState is used to indicate the state
-    transition is in progress. Any operations performed on the
-    transition state are deletegated to the next stable state. See
-    [state transition
-    algorithm](Declarative_Services_RFA#State_Transition_Algorithm "wikilink")
-    for more details about state transitions.</small>
+
+
+#### ConfigurationManager
+**Responsibilities:** 
+1.  Keep merged configuration properties up to date.
+
+2.  Determine if the configuration object dependencies are satisfied.
+
+<small>**Concurrency Note:**  
+</small>
+
+1.  <small>Access to the configuration properties is protected by a lock.</small>
+
+
+#### ConfigurationNotifier
+**Responsibilities:** 
+1. Maintains a listenersMap for each configuration object on which any component 
+   is dependent. More than one component may be listening for changes to the same 
+   configuration object. The listenersMap is keyed according to pid. 
+<small>**Concurrency Note:**  
+</small>
+
+1.  <small>Access to the listenersMap is protected by a lock.</small>
+
+
+#### ConfigurationListener
+**Responsibilities:** 
+1. Receives UPDATE and DELETED notifications  from Configuration Admin when 
+   configuration objects are updated or deleted. 
+
+2. Determines if there are any components listening for updates to this pid and 
+   calls the registered callback if so.  
+
+<small>**Concurrency Note:**  
+</small>
+
+1.  <small>This class is threadsafe.</small>
+
 
 #### ReferenceManager
 
@@ -1964,7 +2499,7 @@ system.
 
 <html>
 
-<img src="0003-declarative-services/ServiceComponentRuntime_EnableComponent_v5.svg" style="width:60%"/>
+<img src="0003-declarative-services/ServiceComponentRuntime_EnableComponent_v5.svg" style="width:90%"/>
 
 </html>
 
@@ -1972,7 +2507,7 @@ system.
 
 <html>
 
-<img src="0003-declarative-services/ServiceComponentRuntime_DisableComponent_v5.svg" style="width:60%"/>
+<img src="0003-declarative-services/ServiceComponentRuntime_DisableComponent_v5.svg" style="width:90%"/>
 
 </html>
 
@@ -1980,7 +2515,7 @@ system.
 
 <html>
 
-<img src="0003-declarative-services/Management_Agent_Retrieve_Configurations.svg" style="width:50%"/>
+<img src="0003-declarative-services/Management_Agent_Retrieve_Configurations.svg" style="width:90%"/>
 
 </html>
 
@@ -1988,7 +2523,7 @@ system.
 
 <html>
 
-<img src="0003-declarative-services/ComponentDisablingItself_v4.svg" style="width:60%"/>
+<img src="0003-declarative-services/ComponentDisablingItself_v4.svg" style="width:90%"/>
 
 </html>
 
@@ -1996,7 +2531,7 @@ system.
 
 <html>
 
-<img src="0003-declarative-services/ServiceConsumerWorkflow_v3.svg" style="width:60%"/>
+<img src="0003-declarative-services/ServiceConsumerWorkflow_v3.svg" style="width:90%"/>
 
 </html>
 
@@ -2004,7 +2539,7 @@ system.
 
 <html>
 
-<img src="0003-declarative-services/DependencyBecomesAvailable_v3.svg" style="width:60%"/>
+<img src="0003-declarative-services/DependencyBecomesAvailable_v3.svg" style="width:90%"/>
 
 </html>
 
@@ -2012,10 +2547,32 @@ system.
 
 <html>
 
-<img src="0003-declarative-services/DependencyBecomesUnsatisfied_v3.svg" style="width:60%"/>
+<img src="0003-declarative-services/DependencyBecomesUnsatisfied_v3.svg" style="width:90%"/>
 
 </html>
 
+#### Component is active, configuration object is updated
+The following diagram illustrates what happens when a component that is currently active 
+receives notification of an updated configuration object on which it is dependent. 
+ComponentConfiguration will call the Modify method of the Component Instance if it's 
+available (9.1). If the Modify method is not available, it will deactivate and 
+reactivate the component (9.2). 
+
+<html>
+
+<img src="0003-declarative-services/config object updated.svg" style="width:60%"/>
+
+</html>
+
+#### Component is active, configuration object is deleted
+The following diagram illustrates what happens when a component that is currently 
+active receives notification of a deleted configuration object on which it is
+dependent. The component is no longer satisfied.
+<html>
+
+<img src="0003-declarative-services/config object deleted.svg" style="width:60%"/>
+
+</html>
 ### Sequence Diagrams
 
 The following diagrams show the control flow for various events in
@@ -2081,7 +2638,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentManager_Enable.svg" style="width:50%"/>
+<img src="0003-declarative-services/ComponentManager_Enable.svg" style="width:700px"/>
 
 </html>
 
@@ -2089,15 +2646,23 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentManager_Disable.svg" style="width:50%"/>
+<img src="0003-declarative-services/ComponentManager_Disable.svg" style="width:700px"/>
 
 </html>
 
-##### ComponentConfiguration::Resolve
+##### ComponentConfiguration::CreateConfigurationManager
 
 <html>
 
-<img src="0003-declarative-services/ComponentConfiguration_Resolve.svg" style="width:40%"/>
+<img src="0003-declarative-services/ComponentConfigurationCreateConfigurationManager.svg" style="width:700px"/>
+
+</html>
+
+##### ComponentConfiguration::Initialize
+
+<html>
+
+<img src="0003-declarative-services/ComponentConfigurationInitialize.svg" style="width:700px"/>
 
 </html>
 
@@ -2105,7 +2670,39 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ComponentConfiguration_GetService.svg" style="width:40%"/>
+<img src="0003-declarative-services/ComponentConfiguration_GetService.svg" style="width:700px"/>
+
+</html>
+
+##### ComponentConfiguration::Rebind
+
+<html>
+
+<img src="0003-declarative-services/ComponentConfigurationRebind.svg" style="width:700px"/>
+
+</html>
+
+##### ComponentConfiguration::RefChangedState Satisfied
+
+<html>
+
+<img src="0003-declarative-services/ComponentConfigurationRefChangedSatisfied.svg" style="width:700px"/>
+
+</html>
+
+##### ComponentConfiguration::RefChangedState Unsatisfied
+
+<html>
+
+<img src="0003-declarative-services/ComponentConfigurationRefChangedUnSatisfied.svg" style="width:700px"/>
+
+</html>
+
+##### ComponentConfiguration::Resolve
+
+<html>
+
+<img src="0003-declarative-services/ComponentManager_Disable.svg" style="width:700px"/>
 
 </html>
 
@@ -2113,7 +2710,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/UnsatisfiedReferenceState_Register.svg" style="width:50%"/>
+<img src="0003-declarative-services/UnsatisfiedReferenceState_Register.svg" style="width:700px"/>
 
 </html>
 
@@ -2121,15 +2718,31 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedState_Activate.svg" style="width:50%"/>
+<img src="0003-declarative-services/SatisfiedState_Activate.svg" style="width:700px"/>
 
 </html>
 
-##### SatisfiedState::DoActivate
+##### ActiveState::Activate
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedState_DoActivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/ActiveStateActivate.svg" style="width:700px"/>
+
+</html>
+
+##### ConfigurationListener::configurationEvent(CM_UPDATED)
+
+<html>
+
+<img src="0003-declarative-services/ConfigurationListenerConfigEvent.svg" style="width:700px"/>
+
+</html>
+
+##### ConfigurationListener::configurationEvent(CM_DELETED)
+
+<html>
+
+<img src="0003-declarative-services/ConfigurationListenerConfigEventDeleted.svg" style="width:700px"/>
 
 </html>
 
@@ -2137,7 +2750,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedState_Deactivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/SatisfiedState_Deactivate.svg" style="width:700px"/>
 
 </html>
 
@@ -2145,7 +2758,7 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/SatisfiedState_DoDeactivate.svg" style="width:30%"/>
+<img src="0003-declarative-services/SatisfiedState_DoDeactivate.svg" style="width:500px"/>
 
 </html>
 
@@ -2153,27 +2766,59 @@ SCR.
 
 <html>
 
-<img src="0003-declarative-services/ActiveState_DoDeactivate.svg" style="width:50%"/>
+<img src="0003-declarative-services/ActiveState_DoDeactivate.svg" style="width:700px"/>
 
 </html>
 
-##### ReferenceManager::AddingService
+##### ReferenceManager::AddingService Static
 
 <html>
 
-<img src="0003-declarative-services/ReferenceManager_AddingService.svg" style="width:50%"/>
+<img src="0003-declarative-services/ReferenceManager_AddingService.svg" style="width:700px"/>
 
 </html>
 
-##### ReferenceManager::RemovedService
+##### ReferenceManager::AddingService Static Reluctant
 
 <html>
 
-<img src="0003-declarative-services/ReferenceManager_RemovedService.svg" style="width:50%"/>
+<img src="0003-declarative-services/ReferenceManagerAddingServiceStaticReluctant.svg" style="width:700px"/>
 
 </html>
 
-### Code Generation Tool
+##### ReferenceManager::AddingService Static Greedy
+
+<html>
+
+<img src="0003-declarative-services/ReferenceManagerAddingServiceStaticGreedy.svg" style="width:700px"/>
+
+</html>
+
+##### ReferenceManager::AddingService Dynamic
+
+<html>
+
+<img src="0003-declarative-services/ReferenceManager_AddingServiceDynamic.svg" style="width:700px"/>
+
+</html>
+
+##### ReferenceManager::RemovedService Static
+
+<html>
+
+<img src="0003-declarative-services/ReferenceManager_RemovedService.svg" style="width:700px"/>
+
+</html>
+
+##### ReferenceManager::RemovedService Dynamic
+
+<html>
+
+<img src="0003-declarative-services/ReferenceManagerRemovedServiceDynamic.svg" style="width:700px"/>
+
+</html>
+
+#### Code Generation Tool
 
 As described in the functional design, a code generator is used to
 generate runtime discoverable extern “C” functions at build time. The
