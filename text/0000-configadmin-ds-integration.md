@@ -1,5 +1,5 @@
 - Start Date: 2021-10-12
-- RFC PR: (in a subsequent commit to the PR, fill me with the PR's URL)
+- RFC PR: https://github.com/CppMicroServices/rfcs/pull/16
 - CppMicroServices Issue: 
 
 # Integration of Configuration Admin into Declarative Services
