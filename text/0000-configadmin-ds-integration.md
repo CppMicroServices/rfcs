@@ -7,8 +7,8 @@
 
 Table of Contents
 =================
- - [Integration of Configuration Admin into Declarative Services](#integration-of-configuration-admin-into-declarative-services)
-- [Table of Contents](#table-of-contents)
+
+- [Integration of Configuration Admin into Declarative Services](#integration-of-configuration-admin-into-declarative-services)
   * [Summary](#summary)
   * [Motivation](#motivation)
     + [Requirements Analysis](#requirements-analysis)
@@ -26,8 +26,8 @@ Table of Contents
         * [Schema and Example](#schema-and-example)
         * [Example](#example)
       - [Component Activation](#component-activation)
-        * [Component Activation - configuration-policy = require](#component-activation---configuration-policy---require)
-          + [Used when inject-references = true](#used-when-inject-references---true)
+      - [Component Activation - configuration-policy = require](#component-activation---configuration-policy---require)
+        * [Used when inject-references = true](#used-when-inject-references---true)
         * [Used when inject-references = false](#used-when-inject-references---false)
         * [Multiple configuration object dependencies - rules of precedence](#multiple-configuration-object-dependencies---rules-of-precedence)
       - [Component Activation - configuration-policy = optional](#component-activation---configuration-policy---optional)
@@ -100,6 +100,7 @@ Table of Contents
       - [ConfigurationListener::configurationEvent(CM_DELETED)](#configurationlistener--configurationevent-cm-deleted-)
       - [ComponentConfiguration::ConfigUnsatisfied](#componentconfiguration--configunsatisfied)
       - [ComponentConfiguration::Resolve](#componentconfiguration--resolve)
+  * [How we teach this](#how-we-teach-this)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -109,14 +110,14 @@ Table of Contents
 This document describes the integration of the Configuration Admin functionality described in the
 [OSGI Configuration Admin Specification](https://docs.osgi.org/specification/osgi.cmpn/7.0.0/service.cm.html) into Declarative Services. The Declarative 
 Services functionality is described in the [OSGI Declarative Services Specification](https://docs.osgi.org/specification/osgi.cmpn/7.0.0/service.component.html) and in the [DS RFC Specification.](https://github.com/CppMicroServices/rfcs/blob/master/text/0003-declarative-services.md). 
-The DS RFC functionality will not be duplicated here. Only changes to that functionality that are required to support 
+The DS RFC content will not be duplicated here. Only changes to that content that are required to support 
 Configuration Admin are described in this document. Please refer to the DS RFC document for a more complete description of 
 Declarative Services. 
 
 ## Motivation
 
 When a service author calls GetService for a service that is not managed by Declarative 
-Services (DS), CppMicroServices returns the registration object. Using this object 
+Services (DS), Core CppMicroServices Framework returns the registration object. Using this object 
 the service author could change properties at runtime.  For services that are managed by 
 DS  this functionality is not available. DS is responsible for the registration objects 
 so the service author doesn't have access to these. Service properties for services managed 
@@ -482,7 +483,7 @@ schema:
 ```
 #### Component Activation
 
-##### Component Activation - configuration-policy = require
+#### Component Activation - configuration-policy = require
 Components may only be activated when the component is satisfied. If the configuration-policy for a
 component is "require" then one or more configuration objects are required in order for this 
 component to be satisfied. The configuration objects are identified by the configuration-pid. 
@@ -493,7 +494,7 @@ activate it. In order for DS to inject the configuration objects when the compon
 is constructed, the component author must provide a constructor which accepts the configuration 
 properties as an input.
  
-###### Used when inject-references = true
+##### Used when inject-references = true
 
 The inject-references attribute determines whether or not the service references on which a component 
 is dependent are included in the constructor. If the inject-references element is set to true in the 
@@ -565,7 +566,7 @@ configuration object.
    - reference policy-option - greedy or reluctant
 
 The following items in the component element may not appear in a configuration object. These attributes 
-cannot be changed without a rebuild. 
+cannot be changed at runtime. 
 
    - name
    - implementation-class
@@ -1239,10 +1240,11 @@ R4_Standardization (OSGi-compliance) is a must-have requirement, and by definiti
 specifications described in the OSGi specification as it can be applied to C++.
 
 ## Architectural Design 
-Declarative Services(DS) Component model is implemented as a layer on top of the OSGi Services model. A 
-companion code generation tool is used to overcome the introspection limitations of C++ language. The DS 
-Architectural Design is described in detail in DS RFC. This section describes the changes that have been 
-made to that Architectural Design in order to support integration of Configuration Admin into DS. 
+Declarative Services(DS) is a service that layers on top of the Core Framework to extend the Core 
+Framework and provide additional functionality. A companion code generation tool is used to overcome 
+the introspection limitations of C++ language. The DS Architectural Design is described in detail
+in the DS RFC. This section describes the changes that have been made to that Architectural Design 
+in order to support integration of Configuration Admin into DS. 
 
 ### Architecturally Significant Design Case(s)
  Prior to the integration of Configuration Admin functionality into DS, a service author who would like to 
@@ -1750,3 +1752,8 @@ for the remaining sequence diagrams.
 <img src="0000-configadmin-ds-integration/ComponentConfigurationResolve.svg" style="width:700px"/>
 
 </html>
+
+## How we teach this
+
+The CppMicroServices online documentation will be updated to describe how to use Configuration Admin 
+with Declarative Services.
