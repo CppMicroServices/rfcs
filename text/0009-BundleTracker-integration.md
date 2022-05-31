@@ -6,13 +6,13 @@
 
 ## Summary
 
-This document describes the integration of the BundleTracker into the CppMicroServices core framework. The BundleTracker functionality is described in the [OSGI BundleTracker Specification](https://docs.osgi.org/javadoc/r4v42/org/osgi/util/tracker/BundleTracker.html), which is mapped to an API definition in C++ described in this document. This document discusses the need for adding BundleTracker to the core framework. Namely, it reveals instances where BundleTracker would improve code written using the core framework. Additionally, a chosen design and alternative implementations for BundleTracker are discussed.
+This document describes the design and integration of the BundleTracker into the CppMicroServices core framework. The BundleTracker functionality is described in the [OSGI BundleTracker Specification](http://docs.osgi.org/specification/osgi.core/7.0.0/util.tracker.html#d0e52020), which is mapped to an API definition in C++ described in this document. This document discusses the need for adding BundleTracker to the core framework. Namely, there is existing compendium code that uses workarounds for lack of a BundleTracker in the core framework (e.g. bundle extension creation/destruction in DeclarativeServices), that would be made simpler and more robust with a proper BundleTracker implementation. Additionally, a chosen design and alternative implementations for BundleTracker are discussed.
 
 ## Motivation
 
 Generally, it is useful to be able to react to state changes in bundles. The core framework offers a BundleListener to do this, but it is limited in its functionality on its own.
 
-The main issue with the BundleListener is that it only gives the user information on the _changed_ states of the bundles, not the _initial_ states when the BundleListener was initialized. Therefore, the user will not find out about any bundles that have been in a certain state since before the BundleListener was started.
+The main issue with the BundleListener is that it only gives the user information on the bundle state changes _after_ the listener is initialized, not the full history of bundle states. Therefore, the user will not find out about any bundles that have been in a certain state since before the BundleListener was started. The BundleTracker, on the other hand, provides the full history of states for bundles (initial, transitory, and current).
 
 To discover this prior information without a BundleTracker, a user might loop through the bundles either before or after starting the BundleListener. Both methods have unexpected results in a multithreaded context, and solving the race conditions while avoiding deadlock is nontrivial.
 
