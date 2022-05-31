@@ -26,11 +26,94 @@ __Note__: The issues with the BundleListener necessitating a BundleTracker are m
 
 ## Functional design
 
-> Shane added this section to talk about the API
+### Functional design summary
+
+The API for the BundleTracker closely mirrors that of the OSGi specification, mapped to an implementation in C++. The ServiceTracker, which has been implemented in the core framework, is used as a guide to ensure uniformity. However, certain enhancements are provided (e.g. smart pointers) to the BundleTracker API to simplify lifetime and ownership of certain objects.
+
+The BundleTracker is templated to allow for object Types
+
+### Creating a BundleTracker
+
+In this implementation, the BundleTracker is templated, where T corresponds with the wrapper object type. This defaults to Bundle, and is not necessary if a wrapper object is not being used. The BundleTracker offers one construtor:
+
+```cpp
+
+// Construct a BundleTracker
+// int corresponds with a bit mask over bundle states, such that
+// a state is tracked iff it is in the mask
+// Use nullptr for the customizer if using default implementation
+// or subclassing BundleTracker to override methods
+BundleTracker(const BundleContext&, int, std::shared_ptr<BundleTrackerCustomizer>)
+```
+
+### Using a BundleTracker
+
+Once a BundleTracker is opened, there are API methods to gain information and monitor bundles:
+
+```cpp
+
+// Return an array of all the tracked bundles
+// TODO: determine the proper return type (pointers to Bundles?)
+std::vector<std::shared_ptr<Bundle>> GetBundles()
+
+// Return the tracked object associated with a provided Bundle
+// This object is defined from the `addingBundle` method
+std::shared_ptr<T> GetObject(Bundle&)
+
+// Remove a bundle from the tracked bundles
+// When the Bundle is not in the tracked map, 
+// calls `removedBundle' method
+// TODO: what if the bundle already isn't tracked?
+void Remove(Bundle&)
+
+// Returns the number of bundles being tracked
+int Size()
+
+// Returns the tracking count
+// Tracking count is a positive integer that ticks up
+// every time the BundleTracker is changed
+int GetTrackingCount()
+
+// Detects whether the BundleTracker has no tracked bundles
+bool IsEmpty()
+
+// Return the tracked objects
+std::vector<std::shared_ptr<T>> GetTracked()
+```
+
+### Customizing a BundleTracker
+
+The behavior of the BundleTracker can be customized in one of two ways:
+
+- Subclassing the BundleTrackerCustomizer class, implementing its pure virtual funtions, and passing a pointer (TODO: what kind of p?) into the constructor for BundleTracker
+- Subclassing BundleTracker and overriding its methods instead of supplying a BundleTrackerCustomizer
+
+The BundleTrackerCustomizer defines three callback methods, which also exist as defaults in BundleTracker:
+
+```cpp
+
+// Called when bundle is added to tracker. This method returns a pointer to a wrapper, which is a Bundle by default. If null is returned, the Bundle is no longer tracked
+std::shared_ptr<T> AddingBundle(const Bundle&, const BundleEvent&)
+
+// Called when a tracked bundle is modified
+// (T is the wrapper object)
+void ModifiedBundle(const Bundle&, const BundleEvent&, const T&)
+
+// Called when a tracked bundle is removed
+// (T is the wrapper object)
+void RemovedBundle(const Bundle&, const BundleEvent&, const T&)
+
+```
+
+### Extending a BundleTracker
+
+
 
 ## Detailed design
 
 > This is the bulk of the RFC.
+
+The BundleTracker design posed in this document follows the Pointer to Implementation (PImpl) pattern in order to hide class members and method implementations from the user. This echoes the behavior 
 
 > Explain the design in enough detail for somebody
 familiar with the framework to understand, and for somebody familiar with the
