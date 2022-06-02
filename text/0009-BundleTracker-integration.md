@@ -1,6 +1,6 @@
 - Start Date: 2022-05-25
 - RFC PR: (in a subsequent commit to the PR, fill me with the PR's URL)
-- CppMicroServices Issue: (fill me with the URL of the CppMicroServices issue that necessitated this RFC, otherwise leave blank)
+- CppMicroServices Issue: [CppMicroServices/CppMicroServices#100](https://github.com/CppMicroServices/CppMicroServices/issues/100)
 
 # Integration of BundleTracker into Core Framework
 
@@ -12,11 +12,11 @@ This document describes the design and integration of the `BundleTracker` into t
 
 Generally, it is useful to be able to react to state changes in bundles. The core framework offers a `BundleListener` to do this, but it is limited in its functionality on its own.
 
-The main issue with the `BundleListener` is that it only gives the user information on the bundle state changes _after_ the listener is initialized, not the full history of bundle states. Therefore, the user will not find out about any bundles that have been in a certain state since before the `BundleListener` was started. The BundleTracker, on the other hand, provides the full history of states for bundles (initial, transitory, and current).
+The main issue with the `BundleListener` is that it only gives the user information on the bundle state changes _after_ the listener is registered, not the full history of bundle states. Therefore, the user will not find out about any bundles that have been in a certain state since before the `BundleListener` was registered. The BundleTracker, on the other hand, provides the full history of states for bundles (initial, transitory, and current).
 
-To discover this prior information without a `BundleTracker`, a user might loop through the bundles either before or after starting the `BundleListener`. Both methods have unexpected results in a multithreaded context, and solving the race conditions while avoiding deadlock is nontrivial.
+To discover this prior information without a `BundleTracker`, a user might loop over the previously installed bundles before starting the `BundleListener`. In a multithreaded context however, this creates synchronization problems that are non-trivial to solve. Since bundles can be installed or uninstalled at any time, it is possible for a bundle added by the user's loop to be uninstalled before the listener is registered. That state change gets missed using this workaround.
 
-Currently, Declarative Services gets around this issue by starting a `BundleListener` and then calling tracker methods on each bundle in a controlled way (in the `SCRActivator`). However, this is a fragile workaround that is easy to implement incorrectly, leading to race conditions or deadlock. As such, it seems appropriate to implement a `BundleTracker` based on the OSGi specification to handle this problem inside of the core framework.
+Currently, Declarative Services uses a workaround similar to the one described above. In the `SCRActivator`, DS registers a `BundleListener`with a callback to respond to changes in bundle states. Then, it loops through the active bundles in the `BundleContext` to manually trigger the same callback on them. This workaround will find bundles started before the listener is registered, but creates other problems. Namely, if a bundle is started in between these two operations, it could cause the callback to be triggered twice on that bundle.
 
 __Note__: The issues with the `BundleListener` necessitating a `BundleTracker` are mirrored by the `ServiceListener` and the `ServiceTracker`, which has been implemented in the CppMicroServices core framework.
 
@@ -64,21 +64,21 @@ __Note__: The issues with the `BundleListener` necessitating a `BundleTracker` a
 
 #### UC1: Casual User of Declarative Services
 
-Lucas is a casual user who uses DS to handle the loading and unloading of components for his bundle. Lucas trusts that DS will always perform this operation correctly. However, since there is no `BundleTracker` implemented in the core framework, Declarative Services could sometimes mishandle other bundles that change state before or during the startup of DS. This can create issues that break the abstraction that DS provides for users of Declarative Services like Lucas (PP1).
+Lucas is a casual user who uses DS to handle the loading and unloading of DS service components for his bundle. Lucas trusts that DS will always perform this operation correctly. However, since there is no `BundleTracker` implemented in the core framework, Declarative Services currently could miss bundles that change state before the startup of DS. This can keep services from registering that are ready, breaking the behavior Lucas excepts. (PP1).
 
 #### UC2: Advanced Microservices Developer
 
-Diana is an advanced microservices developer who wants to develop a service that serves resources to a user, where these resources are stored in bundles. In this application, it is not guaranteed that the provider service will be started before the resource bundles. If a `BundleListener` is used to track the addition and removal of resources, Diana's application will not track bundles started before the service (PP2). Additionally, attempted resolutions to this issue in user code, like looping through the already started bundles to add them, create various possible race conditions (PP3). As an alternative, Diana would like to be able to add her own tracked objects and callbacks through a core framework construct (PP4).
+Diana is an advanced microservices developer who wants to develop a service that serves resources to a user, where these resources are stored in bundles. In this application, it is not guaranteed that the provider service will be registered before the resource bundles are started. If a `BundleListener` is used to track the addition and removal of resources, Diana's application will not track bundles started before the service (PP2). Additionally, attempted resolutions to this issue in user code, like looping through the installed bundles already started, could create race conditions or performance issues at scale (PP3). As an alternative, Diana would like to be able to add her own tracked objects and callbacks through a core framework construct (PP4).
 
 ### Pain Point Summary
 
-PP1: Declarative Services currently has a workaround for the lack of a `BundleTracker` in its service component activation code, which can fail if bundles are changing state while DS is starting.
+PP1: Declarative Services currently has a workaround for the lack of a `BundleTracker` in its service component activation code, which can fail if bundles are installed or change states before the DS `BundleListener` is registered.
 
 PP2: Listeners on their own are insufficient in creating an up-to-date record of bundle states for user code, since bundle states that have not changed since the addition of the listener will not be tracked.
 
-PP3: Leaving the proper tracker implementation to the user creates many opportunities for race conditions or deadlock.
+PP3: It is easy for a user to incorrectly implement a tracking workaround that works sometimes, but fails under certain race conditions or fails to be performant on a large scale.
 
-PP4: For a tracker to be useful, it is helpful to include methods of customization and extension, so that custom wrapper objects and callbacks can be included.
+PP4: Currently, there is not a method of tracking custom objects alongside bundles in the core framework.
 
 ### Requirements
 
@@ -94,13 +94,13 @@ PP4: For a tracker to be useful, it is helpful to include methods of customizati
 <tbody>
 <tr class="odd">
 <td>R1_Previous_States</td>
-<td>The solution must be able to track bundles started before initialization.</td>
+<td>The solution must be able to track bundles started before registering the tracker.</td>
 <td>PP1, PP2</td>
 <td>Must have</td>
 </tr>
 <tr class="even">
-<td>R2_Concurrency</td>
-<td>The solution must handle concurrency when grabbing states of bundles existing during tracker initialization.</td>
+<td>R2_Thread_Safety</td>
+<td>The solution must be thread-safe as a whole.</td>
 <td>PP3</td>
 <td>Must have</td>
 </tr>
@@ -130,7 +130,7 @@ PP4: For a tracker to be useful, it is helpful to include methods of customizati
 </tr>
 <tr class="odd">
 <td>R7_Efficiency</td>
-<td>The solution should be able to scale to many bundles without slowing the core framework.</td>
+<td>The solution should not slow down the CppMicroServices core framework and its downstream clients.</td>
 <td><a href="http://docs.osgi.org/specification/osgi.core/7.0.0/util.tracker.html#d0e52020"></a></td>
 <td>Must have</td>
 </tr>
