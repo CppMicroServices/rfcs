@@ -363,7 +363,7 @@ public:
     *
     * @see BundleTrackerCustomizer:AddingBundle(Bundle, BundleEvent)
     */
-    std::shared_ptr<T> AddingBundle(const Bundle& bundle, const BundleEvent& event);
+    virtual std::shared_ptr<T> AddingBundle(const Bundle& bundle, const BundleEvent& event);
 
     /**
     * Called when a Bundle is modified that is being tracked by this BundleTracker.
@@ -376,7 +376,7 @@ public:
     *
     * @see BundleTrackerCustomizer:ModifiedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
     */
-    void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
+    virtual void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
 
     /**
     * Called when a Bundle is being removed from this BundleTracker
@@ -387,7 +387,7 @@ public:
     *
     * @see BundleTrackerCustomizer:RemovedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
     */
-    void RemovedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
+    virtual void RemovedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
 
     virtual ~BundleTrackerCustomizer() {}
 };
