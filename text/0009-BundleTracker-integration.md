@@ -191,7 +191,7 @@ public:
     */
     BundleTracker(const BundleContext& context,
                 uint32_t stateMask,
-                std::shared_ptr<BundleTrackerCustomizer> customizer = nullptr) {}
+                std::unique_ptr<BundleTrackerCustomizer> customizer = nullptr) {}
     virtual ~BundleTracker() {}
 
     /**
@@ -363,7 +363,7 @@ public:
     *
     * @see BundleTrackerCustomizer:AddingBundle(Bundle, BundleEvent)
     */
-    virtual std::shared_ptr<T> AddingBundle(const Bundle& bundle, const BundleEvent& event);
+    virtual std::shared_ptr<T> AddingBundle(const Bundle& bundle, const BundleEvent& event) = 0;
 
     /**
     * Called when a Bundle is modified that is being tracked by this BundleTracker.
@@ -376,7 +376,7 @@ public:
     *
     * @see BundleTrackerCustomizer:ModifiedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
     */
-    virtual void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
+    virtual void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object) = 0;
 
     /**
     * Called when a Bundle is being removed from this BundleTracker
@@ -387,7 +387,7 @@ public:
     *
     * @see BundleTrackerCustomizer:RemovedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
     */
-    virtual void RemovedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
+    virtual void RemovedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object) = 0;
 
     virtual ~BundleTrackerCustomizer() {}
 };
@@ -421,7 +421,7 @@ Once a `BundleTracker` is opened, there are API methods to gain information and 
 
 To implement the `BundleTrackerCustomizer` methods, there are two options that have the same effect:
 
-- Implementing a concrete subclass of `BundleTrackerCustomizer` and passing a `std::shared_ptr` to an instance into the `BundleTracker` constructor.
+- Implementing a concrete subclass of `BundleTrackerCustomizer` and passing a `std::unique_ptr` to an instance into the `BundleTracker` constructor.
 - Subclassing `BundleTracker` and overriding the `BundleTrackerCustomizer` methods, then passing in a `nullptr` to the `BundleTracker` constructor.
 
 The `BundleTrackerCustomizer` methods offer the ability to create and manage custom objects to be tracked (the pointer returned from `AddingBundle(const Bundle&, const BundleEvent&)` will be passed into the other methods when called on the same `Bundle`). Additionally, if a `nullptr` is returned, the object will not be tracked by the `BundleTracker`.
@@ -432,7 +432,7 @@ The [OSGi specification](http://docs.osgi.org/specification/osgi.core/7.0.0/util
 
 ## Detailed design
 
-__TODO: Add architectural design and implementation details__
+The `BundleTracker` is to use a pointer-to-implementation pattern for implementation. The members and implementation details are to be stored in a class `BundleTrackerPrivate`, which is instantiated by `BundleTracker` with a `std::unique_ptr`. The lifetime of the `BundleTrackerPrivate` is the same as that of the `BundleTracker`. There is also a `TrackedBundle` class, which offers additional functionality and subclasses `BundleAbstractTracked`.
 
 ## How we teach this
 
@@ -451,5 +451,3 @@ __TODO: Add implementation drawbacks__
 __TODO: Add alternative paths (not implementing this, other possible implementations, etc.)__
 
 ## Unresolved questions
-
-- What type of pointer should be used for the `BundleTrackerCustomizer` in the `BundleTracker` constructor, `std::unique_ptr` or `std::shared_ptr`?
