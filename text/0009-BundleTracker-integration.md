@@ -176,23 +176,27 @@ namespace cppmicroservices {
  * @remarks This class is thread safe.
  */
 template <class T = Bundle>
-class BundleTracker<T> : protected BundleTrackerCustomizer<T>
+class BundleTracker : protected BundleTrackerCustomizer<T>
 {
 public:
 
     /**
-    * Create a BundleTracker that tracks bundles through states covered by the state mask.
-    * 
-    * @param context The BundleContext from which tracking occurs.
-    * @param stateMask The bit mask which defines the bundle states to be tracked.
-    * @param customizer The customizer to call when bundles are added, modified, or removed.
-    *                   If the customizer is nullptr, then the callbacks in this BundleTracker will 
-    *                   be used instead (default or can be overridden).
-    */
+     * Create a BundleTracker that tracks bundles through states covered by the state mask.
+     * 
+     * @param context The BundleContext from which tracking occurs.
+     * @param stateMask The bit mask which defines the bundle states to be tracked.
+     * @param customizer The customizer to call when bundles are added, modified, or removed.
+     *                   If the customizer is nullptr, then the callbacks in this BundleTracker will 
+     *                   be used instead (default or can be overridden).
+     */
     BundleTracker(const BundleContext& context,
                 uint32_t stateMask,
-                std::unique_ptr<BundleTrackerCustomizer> customizer = nullptr) {}
-    virtual ~BundleTracker() {}
+                std::unique_ptr<BundleTrackerCustomizer<T>> customizer = nullptr) {}
+
+    /**
+     * Automatically close the BundleTracker
+     */
+    ~BundleTracker() override;
 
     /**
     * Called when a Bundle is being added to the BundleTracker 
@@ -316,7 +320,7 @@ public:
     int Size();
 
 private:
-    std::unique_ptr<BundleTrackerPrivate> d;
+    std::unique_ptr<BundleTrackerPrivate<T>> d;
 };
 }
 
@@ -343,7 +347,7 @@ namespace cppmicroservices {
  * @remarks This class is thread safe. All implementations should also be thread safe.
  */
 template <class T = Bundle>
-class BundleTrackerCustomizer<T>
+class BundleTrackerCustomizer
 {
 public:
 
