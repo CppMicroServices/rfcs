@@ -1,0 +1,20 @@
+@startuml modbundle_diagram
+
+rectangle "BundleEvent" as BE
+rectangle "BundleListener" as BL
+'rectangle "BundleTracker" as BT
+'rectangle "BundleTrackerPrivate" as BTP
+rectangle "TrackedBundle" as TB
+'rectangle "BundleContext" as BC
+rectangle "BundleAbstractTracked" as BAT
+rectangle "BundleTrackerCustomizer" as BTC
+
+BE -> BL : Intercept event
+BL -> TB : BundleChanged()
+TB -> BAT : Track()
+TB <- BAT: CustomizerModified()
+TB -d-> BTC : ModifiedBundle()
+
+note bottom of BAT : Bundle is in map\nEntering state mask\nIncrement count
+
+@enduml

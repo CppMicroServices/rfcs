@@ -10,7 +10,7 @@ This document describes the design and integration of the `BundleTracker` into t
 
 ## Motivation
 ****
-Generally, it is useful to be able to react to state changes in bundles. The core framework offers a `BundleListener` to do this, but it is limited in its functionality on its own.
+It is useful to be able to react to state changes in bundles. The core framework offers a `BundleListener` to do this, but it is limited in its functionality on its own.
 
 The main issue with the `BundleListener` is that it only gives the user information on the bundle state changes _after_ the listener is registered, not the full history of bundle states. Therefore, the user will not find out about any bundles that have been in a certain state since before the `BundleListener` was registered. The `BundleTracker`, on the other hand, provides the full history of states for bundles (initial, transitory, and current).
 
@@ -459,7 +459,9 @@ The `BundleTracker` itself is part of the core CppMicroservices framework.
 
 The following illustrates the class diagram for the `BundleTracker`:
 
-TODO: Add class diagram
+![Class Diagram](0009-BundleTracker-integration/class_diagram.svg)
+
+TODO: Update template types based on discussion on 6/17
 
 #### BundleTrackerCustomizer
 
@@ -523,22 +525,22 @@ This object is stored as an atomic shared pointer in `BundleTrackerPrivate` to p
 ### Communication Diagrams
 
 #### Opening BundleTracker
-TODO: Add diagram
+![Open Diagram](0009-BundleTracker-integration/open_diagram.svg)
 
 #### Untracked Bundle Enters Tracked State
-TODO: Add diagram
+![Adding](0009-BundleTracker-integration/addbundle_diagram.svg)
 
 #### Tracked Bundle Enters Tracked State
-TODO: Add diagram
+![Modified](0009-BundleTracker-integration/modbundle_diagram.svg)
 
 #### Tracked Bundle Enters Untracked State
-TODO: Add diagram
+![Removed](0009-BundleTracker-integration/rembundle_diagram.svg)
 
 #### Bundle Removed by User
-TODO: Add diagram
+![Manually Removed](0009-BundleTracker-integration/manrembundle_diagram.svg)
 
 #### Closing BundleTracker
-TODO: Add diagram
+![Closed](0009-BundleTracker-integration/close_diagram.svg)
 
 ## How we teach this
 ****

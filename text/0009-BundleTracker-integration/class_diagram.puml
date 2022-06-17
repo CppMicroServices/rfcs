@@ -1,0 +1,92 @@
+@startuml class_diagram
+package cppmicroservices {
+    
+    class "BundleListener" as BL
+    class "BundleContext" as BC
+
+    class "BundleTracker" as BT<T> {
+        - d : std::unique_ptr<BundleTrackerPrivate<TypeTraits>>
+        + Open() : void
+        + Close() : void
+        + GetBundles() : std::vector<Bundle>
+        + GetObject(const Bundle&) : std::shared_ptr<TrackedParamType>
+        + GetTracked() : TrackingMap
+        + GetTrackingCount() : int
+        + IsEmpty() : bool
+        + Remove(const Bundle&) : bool
+        + Size() : int
+        + AddingBundle(const Bundle&, const BundleEvent&): std::shared_ptr<TrackedParamType>
+        + ModifiedBundle(const Bundle&, const BundleEvent&): std::shared_ptr<TrackedParamType>
+        + RemovedBundle(const Bundle&, const BundleEvent&): std::shared_ptr<TrackedParamType>
+    }
+    interface "BundleTrackerCustomizer" as BTC<T> {
+        + AddingBundle(const Bundle&, const BundleEvent&) : std::shared_ptr<TrackedParamType> 
+        + modifiedBundle(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
+        + removedBundle(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
+    }
+    
+    package detail {
+        class "BundleTrackerPrivate" as BTP<TTT> {
+            + context : BundleContext
+            + customizer : std::weak_ptr<BundleTrackerCustomizer<TrackedType>>
+            + listenerToken : ListenerToken
+            + trackedBundle : Atomic<std::shared_ptr<TrackedBundle<TTT>>>
+            + Tracked() : std::shared_pointer<TrackedBundle<TTT>>
+            - q_func() : std::weak_ptr<BundleTracker<T>>
+            - q_ptr : std::weak_ptr<BundleTracker<T>>
+        }
+        interface "TrackedBundleListener" as TBL {
+            + BundleChanged(const BundleEvent&) : void
+        }
+        class "TrackedBundle" as TB<TTT> {
+            - latch : CounterLatch
+            - bundleTracker : std::weak_ptr<BundleTracker<T>>
+            - customizer : std::weak_ptr<BundleTrackerCustomizer<T>>
+
+            - BundleChanged(const BundleEvent&) : void
+            - Modified() : void
+            - CustomizerAdding(const Bundle&, const BundleEvent&) : std::shared_ptr<TrackedParamType>
+            - CustomzierModified(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
+            - CustomzierRemoved(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
+        
+        }
+        class "TrackedService" as TS
+        class "BundleAbstractTracked" as BAT <S, TTT, R> {
+            + SetInitial(const std::vector~<S>&) : void
+            + TrackInitial() : void
+            + Close() : void
+            + Track(S, R) : void
+            + Untrack(S, R) : void
+            + Size_unlocked() : std::size_t
+            + IsEmpty_unlocked() : bool
+            + GetCustomizedObject_unlocked(S) : std::shared_ptr<TrackedParamType>
+            + GetTracked_unlocked(std::vector~<S>&) : void
+            + Modified() : void
+            + GetTrackingCount() : int
+            + CopyEntries_unlocked(TrackingMap&) : void
+            + CustomizerAdding(S, R&) : std::shared_ptr<TrackedParamType>
+            + CustomzierModified(S, R&, std::shared_ptr<TrackedParamType>&) : void
+            + CustomzierRemoved(S, R&, std::shared_ptr<TrackedParamType>&) : void
+            + TrackAdding(S, R) : void
+            + initial : std::list~<S>
+            + adding : std::list~<S>
+            + closed : std::atmoic<bool>
+            - tracked : TrackingMap
+            - trackingCount : std::atomic<int>
+            - bc : BundleContext
+            - CustomizerAddingFinal(S, const std::shared_ptr<TrackedParamType>&) : bool
+        }
+    }
+    BTC <|-- BT
+    BT *-- BTP
+    BTP o-- BT
+    BAT <|-- TB
+    TBL <|-- TB
+    TB *-- BTP
+    BTP o-- BC
+    BTP o-- BL
+    BTP o-- BTC
+    BAT <|-- TS
+
+}
+@enduml

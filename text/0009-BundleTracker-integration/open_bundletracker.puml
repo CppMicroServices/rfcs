@@ -1,0 +1,19 @@
+@startuml open_diagram
+:Client: as Client
+
+rectangle "BundleTracker" as BT
+rectangle "BundleTrackerPrivate" as BTP
+rectangle "TrackedBundle" as TB
+rectangle "BundleContext" as BC
+rectangle "BundleAbstractTracked" as BAT
+rectangle "BundleTrackerCustomizer" as BTC
+
+Client -> BT : Open()
+BT - BC : Register listener
+BT -d-> BTP : Store listener and TrackedBundle
+BT -> TB : TrackInitial()
+TB -d-> BAT : Track() on new bundles
+BAT -> TB : CustomizerAdding() on new bundles
+TB -> BTC : Call user-defined AddingBundle()
+
+@enduml

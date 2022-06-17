@@ -1,0 +1,21 @@
+@startuml close_diagram
+:Client: as Client
+
+rectangle "BundleTracker" as BT
+rectangle "BundleTrackerPrivate" as BTP
+rectangle "TrackedBundle" as TB
+rectangle "BundleContext" as BC
+rectangle "BundleAbstractTracked" as BAT
+rectangle "BundleTrackerCustomizer" as BTC
+
+Client -> BT : Close()
+BT <-d- BTP : Get listener and TrackedBundle
+BT <-d- TB : Wait for customizers
+BT -> TB : Close()
+BT - BC : Remove listener
+
+TB -d-> BAT : Untrack() on bundles
+BAT -> TB : CustomizerRemoved() on bundles
+TB -> BTC : Call user-defined RemovedBundle()
+
+@enduml
