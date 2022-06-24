@@ -9,26 +9,26 @@ package cppmicroservices {
         + Open() : void
         + Close() : void
         + GetBundles() : std::vector<Bundle>
-        + GetObject(const Bundle&) : std::shared_ptr<TrackedParamType>
-        + GetTracked() : TrackingMap
+        + GetObject(const Bundle&) : TrackedParamType
+        + GetTracked() : std::unordered_map<Bundle, T>
         + GetTrackingCount() : int
         + IsEmpty() : bool
         + Remove(const Bundle&) : bool
-        + Size() : int
-        + AddingBundle(const Bundle&, const BundleEvent&): std::shared_ptr<TrackedParamType>
-        + ModifiedBundle(const Bundle&, const BundleEvent&): std::shared_ptr<TrackedParamType>
-        + RemovedBundle(const Bundle&, const BundleEvent&): std::shared_ptr<TrackedParamType>
+        + Size() : size_t
+        + AddingBundle(const Bundle&, const BundleEvent&): TrackedParamType
+        + ModifiedBundle(const Bundle&, const BundleEvent&, TrackedParamType): void
+        + RemovedBundle(const Bundle&, const BundleEvent&, TrackedParamType): void
     }
     interface "BundleTrackerCustomizer" as BTC<T> {
-        + AddingBundle(const Bundle&, const BundleEvent&) : std::shared_ptr<TrackedParamType> 
-        + modifiedBundle(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
-        + removedBundle(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
+        + AddingBundle(const Bundle&, const BundleEvent&) : TrackedParamType 
+        + modifiedBundle(const Bundle&, const BundleEvent&, TrackedParamType) : void
+        + removedBundle(const Bundle&, const BundleEvent&, TrackedParamType) : void
     }
     
     package detail {
         class "BundleTrackerPrivate" as BTP<TTT> {
             + context : BundleContext
-            + customizer : std::weak_ptr<BundleTrackerCustomizer<TrackedType>>
+            + customizer : std::shared_ptr<BundleTrackerCustomizer<TrackedType>>
             + listenerToken : ListenerToken
             + trackedBundle : Atomic<std::shared_ptr<TrackedBundle<TTT>>>
             + Tracked() : std::shared_pointer<TrackedBundle<TTT>>
@@ -45,9 +45,9 @@ package cppmicroservices {
 
             - BundleChanged(const BundleEvent&) : void
             - Modified() : void
-            - CustomizerAdding(const Bundle&, const BundleEvent&) : std::shared_ptr<TrackedParamType>
-            - CustomzierModified(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
-            - CustomzierRemoved(const Bundle&, const BundleEvent&, std::shared_ptr<TrackedParamType>) : void
+            - CustomizerAdding(const Bundle&, const BundleEvent&) : TrackedParamType
+            - CustomzierModified(const Bundle&, const BundleEvent&, TrackedParamType) : void
+            - CustomzierRemoved(const Bundle&, const BundleEvent&, TrackedParamType) : void
         
         }
         class "TrackedService" as TS
@@ -59,19 +59,19 @@ package cppmicroservices {
             + Untrack(S, R) : void
             + Size_unlocked() : std::size_t
             + IsEmpty_unlocked() : bool
-            + GetCustomizedObject_unlocked(S) : std::shared_ptr<TrackedParamType>
+            + GetCustomizedObject_unlocked(S) : TrackedParamType
             + GetTracked_unlocked(std::vector~<S>&) : void
             + Modified() : void
             + GetTrackingCount() : int
             + CopyEntries_unlocked(TrackingMap&) : void
-            + CustomizerAdding(S, R&) : std::shared_ptr<TrackedParamType>
-            + CustomzierModified(S, R&, std::shared_ptr<TrackedParamType>&) : void
-            + CustomzierRemoved(S, R&, std::shared_ptr<TrackedParamType>&) : void
+            + CustomizerAdding(S, R&) : TrackedParamType
+            + CustomzierModified(S, R&, TrackedParamType&) : void
+            + CustomzierRemoved(S, R&, TrackedParamType&) : void
             + TrackAdding(S, R) : void
             + initial : std::list~<S>
             + adding : std::list~<S>
             + closed : std::atmoic<bool>
-            - tracked : TrackingMap
+            - tracked : std::unordered_map<S, TrackedParamType>
             - trackingCount : std::atomic<int>
             - bc : BundleContext
             - CustomizerAddingFinal(S, const std::shared_ptr<TrackedParamType>&) : bool

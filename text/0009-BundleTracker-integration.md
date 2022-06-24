@@ -10,6 +10,7 @@ This document describes the design and integration of the `BundleTracker` into t
 
 ## Motivation
 ****
+
 It is useful to be able to react to state changes in bundles. The core framework offers a `BundleListener` to do this, but it is limited in its functionality on its own.
 
 The main issue with the `BundleListener` is that it only gives the user information on the bundle state changes _after_ the listener is registered, not the full history of bundle states. Therefore, the user will not find out about any bundles that have been in a certain state since before the `BundleListener` was registered. The `BundleTracker`, on the other hand, provides the full history of states for bundles (initial, transitory, and current).
@@ -174,6 +175,8 @@ public:
      * @param customizer The customizer to call when bundles are added, modified, or removed.
      *                   If the customizer is nullptr, then the callbacks in this BundleTracker will 
      *                   be used instead (default or can be overridden).
+     *
+     * @see Bundle::State
      */
     BundleTracker(const BundleContext& context,
                 uint32_t stateMask,
@@ -183,25 +186,6 @@ public:
      * Automatically close the BundleTracker
      */
     ~BundleTracker() override;
-
-    /**
-     * Called when a Bundle is being added to the BundleTracker 
-     * and the customizer constructor argument was nullptr.
-     * 
-     * When the BundleTracker detects a Bundle that should be added to the tracker 
-     * based on the search parameters (state mask, context, etc.),
-     * this method is called. This method should return the object to be tracked 
-     * for the specified Bundle if the BundleTracker is being extended.
-     * Otherwise, return the Bundle itself. If the return is nullptr, the Bundle is not tracked.
-     *
-     * @param bundle The Bundle being added to the BundleTracker.
-     * @param event the BundleEvent which was caught by the BundleTracker.
-     *
-     * @return The object to be tracked for the specified Bundle object or nullptr to avoid tracking the Bundle.
-     *
-     * @see BundleTrackerCustomizer:AddingBundle(Bundle, BundleEvent)
-     */
-    std::shared_ptr<T> AddingBundle(const Bundle& bundle, const BundleEvent& event);
 
     /**
      * Close this BundleTracker.
@@ -224,7 +208,7 @@ public:
      * @param bundle The Bundle paired with the object
      * @return The custom object paired with the given Bundle or null if the Bundle is not being tracked.
      */
-    std::shared_ptr<T> GetObject(const Bundle& bundle);
+    T GetObject(const Bundle& bundle);
 
     /**
      * Returns an unordered map from all of the currently tracked Bundles to their custom objects.
@@ -232,7 +216,7 @@ public:
      * @return An unordered map from all of the Bundles currently tracked by this
      * BundleTracker to their custom objects.
      */
-    std::unordered_map<Bundle, std::shared_ptr<T>> GetTracked();
+    std::unordered_map<Bundle, T> GetTracked();
 
     /**
      * Returns the tracking count for this BundleTracker.
@@ -256,20 +240,6 @@ public:
     bool IsEmpty();
 
     /**
-     * Called when a Bundle is modified that is being tracked by this BundleTracker
-     * and the BundleTrackerCustomizer constructor argument was nullptr.
-     *
-     * When a tracked bundle changes states, this method is called.
-     *
-     * @param bundle The tracked Bundle whose state has changed.
-     * @param event The BundleEvent which was caught by the BundleTracker. Can be null.
-     * @param object The tracked object corresponding to the tracked Bundle (returned from AddingBundle).
-     *
-     * @see BundleTrackerCustomizer:ModifiedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
-     */
-    void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
-
-    /**
      * Open this BundleTracker to begin tracking bundles.
      *
      * Bundles that match the state mask will be tracked by this BundleTracker.
@@ -287,6 +257,48 @@ public:
     void Remove(const Bundle&);
 
     /**
+     * Return the number of bundles being tracked by this BundleTracker.
+     *
+     * @return The number of tracked bundles.
+     */
+    size_t Size();
+
+    // Default BundleTrackerCustomizer Methods
+
+    /**
+     * Called when a Bundle is being added to the BundleTracker 
+     * and the customizer constructor argument was nullptr.
+     * 
+     * When the BundleTracker detects a Bundle that should be added to the tracker 
+     * based on the search parameters (state mask, context, etc.),
+     * this method is called. This method should return the object to be tracked 
+     * for the specified Bundle if the BundleTracker is being extended.
+     * Otherwise, return the Bundle itself. If the return is nullptr, the Bundle is not tracked.
+     *
+     * @param bundle The Bundle being added to the BundleTracker.
+     * @param event the BundleEvent which was caught by the BundleTracker.
+     *
+     * @return The object to be tracked for the specified Bundle object or nullptr to avoid tracking the Bundle.
+     *
+     * @see BundleTrackerCustomizer:AddingBundle(const Bundle&, const BundleEvent&)
+     */
+    T AddingBundle(const Bundle& bundle, const BundleEvent& event);
+
+    /**
+     * Called when a Bundle is modified that is being tracked by this BundleTracker
+     * and the BundleTrackerCustomizer constructor argument was nullptr.
+     *
+     * When a tracked bundle changes states, this method is called.
+     *
+     * @param bundle The tracked Bundle whose state has changed.
+     * @param event The BundleEvent which was caught by the BundleTracker. Can be null.
+     * @param object The tracked object corresponding to the tracked Bundle (returned from AddingBundle).
+     *
+     * @see BundleTrackerCustomizer:ModifiedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
+     */
+    void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, T object);
+
+    /**
      * Called when a Bundle is being removed from this BundleTracker
      * and the BundleTrackerCustomizer constructor argument was nullptr.
      *
@@ -294,21 +306,27 @@ public:
      * @param event The BundleEvent which was caught by the BundleTracker. Can be null.
      * @param object The tracked object corresponding to the tracked Bundle (returned from AddingBundle).
      *
-     * @see BundleTrackerCustomizer:RemovedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
+     * @see BundleTrackerCustomizer:RemovedBundle(const Bundle&, const BundleEvent&, T)
      */
-    void RemovedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object);
+    void RemovedBundle(const Bundle& bundle, const BundleEvent& event, T object);
+
+    // Static methods
 
     /**
-     * Return the number of bundles being tracked by this BundleTracker.
+     * Called to create a state mask using bitwise OR
      *
-     * @return The number of tracked bundles.
+     * @param states The bundle states for the mask.
+     *
+     * @return A state mask for use in the BundleTracker constructor.
      */
-    int Size();
+    static BundleTracker::StateType CreateStateMask(Bundle::State states...);
 
 private:
     std::unique_ptr<BundleTrackerPrivate<T>> d;
+
 };
-}
+
+} // namespace cppmicroservices
 
 ```
 
@@ -353,7 +371,7 @@ public:
      *
      * @see BundleTrackerCustomizer:AddingBundle(Bundle, BundleEvent)
      */
-    virtual std::shared_ptr<T> AddingBundle(const Bundle& bundle, const BundleEvent& event) = 0;
+    virtual T AddingBundle(const Bundle& bundle, const BundleEvent& event) = 0;
 
     /**
      * Called when a Bundle is modified that is being tracked by this BundleTracker.
@@ -366,7 +384,7 @@ public:
      *
      * @see BundleTrackerCustomizer:ModifiedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
      */
-    virtual void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object) = 0;
+    virtual void ModifiedBundle(const Bundle& bundle, const BundleEvent& event, T object) = 0;
 
     /**
      * Called when a Bundle is being removed from this BundleTracker
@@ -377,7 +395,7 @@ public:
      *
      * @see BundleTrackerCustomizer:RemovedBundle(Bundle, BundleEvent, std::shared_ptr<T>)
      */
-    virtual void RemovedBundle(const Bundle& bundle, const BundleEvent& event, std::shared_ptr<T> object) = 0;
+    virtual void RemovedBundle(const Bundle& bundle, const BundleEvent& event, T object) = 0;
 
     virtual ~BundleTrackerCustomizer() {}
 };
@@ -391,7 +409,7 @@ public:
 In this API, the `BundleTracker` has a template argument `T`, which corresponds to the wrapper object type. This defaults to `Bundle` if no wrapper object is used. The `BundleTracker` constructor takes three arguments:
 
 - The `BundleContext` from which the tracker shall be created.
-- An unsigned 32-bit integer as a mask of states, where all of the active bits correspond to Bundle states that will be tracked.
+- An unsigned 32-bit integer as a mask of states, where all of the active bits correspond to Bundle states that will be tracked. The `CreateStateMask` method is defined to simplify the creation of these masks
 - A shared pointer to a `BundleTrackerCustomizer` object. If `nullptr` is supplied to the constructor, the `BundleTracker` will use its internal `BundleTrackerCustomizer` methods.
 
 Once the `BundleTracker` is constructed, `Open()` is called to begin the tracking of bundles. When tracking is no longer necessary, `Close()` is called to stop tracking bundles. Additionally, `Close()` will be called automatically on an open `BundleTracker` if it goes out of scope.
@@ -414,7 +432,7 @@ To implement the `BundleTrackerCustomizer` methods, there are two options that h
 - Implementing a concrete subclass of `BundleTrackerCustomizer` and passing a `std::shared_ptr` to an instance into the `BundleTracker` constructor.
 - Subclassing `BundleTracker` and overriding the `BundleTrackerCustomizer` methods, then passing in a `nullptr` to the `BundleTracker` constructor.
 
-The `BundleTrackerCustomizer` methods offer the ability to create and manage custom objects to be tracked (the pointer returned from `AddingBundle(const Bundle&, const BundleEvent&)` will be passed into the other methods when called on the same `Bundle`). Additionally, if a `nullptr` is returned, the object will not be tracked by the `BundleTracker`.
+The `BundleTrackerCustomizer` methods offer the ability to create and manage custom objects to be tracked (the pointer returned from `AddingBundle(const Bundle&, const BundleEvent&)` will be passed into the other methods when called on the same `Bundle`). Additionally, if a `NULL` is returned, the object will not be tracked by the `BundleTracker`.
 
 The three callbacks are called under the following conditions:
 
@@ -444,6 +462,8 @@ The `BundleTracker` is implemented as part of of the core framework for CppMicro
 
 The `BundleTracker` uses a pointer-to-implementation pattern to hide data members and implementation details from the user. This information is contained in `BundleTrackerPrivate`, which has a one-to-one relationship with the `BundleTracker` through a `std::unique_ptr`. This construct in turn owns an instance of the `TrackedBundle`, which subclasses `BundleAbstractTracked` and handles tracking operations while the `BundleTracker` is open.
 
+The customization scheme comes from a back pointer from the `TrackedBundle` class. When a `BundleTrackerCustomizer` is provided by the user, the pointer points to it. When `BundleTrackerCustomizer` is NULL when constructed, it points to the `BundleTracker` itself to use the default or overridden methods.
+
 It is worth noting that the API for `BundleTracker` is different from the current implementation of the `ServiceTracker`, which still uses a raw pointer for the `ServiceTracker` constructor's `ServiceTrackerCustomizer` argument. In the future, the `ServiceTracker` API should be adapted to function like the new `BundleTracker` API to make the lifetime of the `ServiceTrackerCustomizer` more explicit.
 ### Core Framework Interactions
 
@@ -460,8 +480,6 @@ The `BundleTracker` itself is part of the core CppMicroservices framework.
 The following illustrates the class diagram for the `BundleTracker`:
 
 ![Class Diagram](0009-BundleTracker-integration/class_diagram.svg)
-
-TODO: Update template types based on discussion on 6/17
 
 #### BundleTrackerCustomizer
 
