@@ -9,11 +9,11 @@ rectangle "TrackedBundle" as TB
 rectangle "BundleAbstractTracked" as BAT
 rectangle "BundleTrackerCustomizer" as BTC
 
-BE -> BL : Intercept event
-BL -> TB : BundleChanged()
-TB -> BAT : Track()
-TB <- BAT: CustomizerModified()
-TB -d-> BTC : ModifiedBundle()
+BE -> BL : 1: Intercept event
+BL -> TB : 2: BundleChanged()
+TB -> BAT : 3: Track()
+TB <- BAT: 4: CustomizerModified()
+TB -d-> BTC : 5: ModifiedBundle()
 
 note bottom of BAT : Bundle is in map\nEntering state mask\nIncrement count
 

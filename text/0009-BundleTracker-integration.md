@@ -322,7 +322,7 @@ public:
     static BundleTracker::StateType CreateStateMask(Bundle::State states...);
 
 private:
-    std::unique_ptr<BundleTrackerPrivate<T>> d;
+    std::unique_ptr<BundleTrackerPrivate<TypeTraits>> d;
 
 };
 

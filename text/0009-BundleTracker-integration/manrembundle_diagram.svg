@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="333px" preserveAspectRatio="none" style="width:501px;height:333px;background:#FFFFFF;" version="1.1" viewBox="0 0 501 333" width="501px" zoomAndPan="magnify"><defs><filter height="300%" id="f1d7acafnraahq" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><!--MD5=[0ba5ee7700168656dc1b457c6fe9fdac]
-entity Client--><ellipse cx="110.5" cy="14" fill="#FEFECE" filter="url(#f1d7acafnraahq)" rx="8" ry="8" style="stroke:#A80036;stroke-width:1.5;"/><path d="M110.5,22 L110.5,49 M97.5,30 L123.5,30 M110.5,49 L97.5,64 M110.5,49 L123.5,64 " fill="none" filter="url(#f1d7acafnraahq)" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="36" x="92.5" y="84.0332">Client</text><!--MD5=[12e922f5689a4b39af25c0eb21e26788]
-entity BT--><rect fill="#FEFECE" filter="url(#f1d7acafnraahq)" height="37.6094" style="stroke:#000000;stroke-width:1.5;" width="113" x="219" y="27"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="229" y="51.5332">BundleTracker</text><!--MD5=[92e1b8d0a4b2a37ccd7fcd96c5dfe02c]
-entity TB--><rect fill="#FEFECE" filter="url(#f1d7acafnraahq)" height="37.6094" style="stroke:#000000;stroke-width:1.5;" width="116" x="40.5" y="165.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="96" x="50.5" y="190.0332">TrackedBundle</text><!--MD5=[bf47ed657672796465dc76c4ef1ad49d]
-entity BAT--><rect fill="#FEFECE" filter="url(#f1d7acafnraahq)" height="37.6094" style="stroke:#000000;stroke-width:1.5;" width="168" x="320.5" y="165.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="148" x="330.5" y="190.0332">BundleAbstractTracked</text><!--MD5=[6815a7c98912f1a3feb5ab6a43f68320]
-entity BTC--><rect fill="#FEFECE" filter="url(#f1d7acafnraahq)" height="37.6094" style="stroke:#000000;stroke-width:1.5;" width="183" x="7" y="284"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="163" x="17" y="308.5332">BundleTrackerCustomizer</text><path d="M316.5,281.5 L316.5,324.2031 A0,0 0 0 0 316.5,324.2031 L492.5,324.2031 A0,0 0 0 0 492.5,324.2031 L492.5,291.5 L482.5,281.5 L408.5,281.5 L404.5,203.7 L400.5,281.5 L316.5,281.5 A0,0 0 0 0 316.5,281.5 " fill="#FBFB77" filter="url(#f1d7acafnraahq)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M482.5,281.5 L482.5,291.5 L492.5,291.5 L482.5,281.5 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="155" x="322.5" y="299.9951">Removed Bundle from map</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="93" x="322.5" y="316.3467">Increment count</text><!--MD5=[6d60a2609ab0a1c9580d799ef3a81eb5]
-link Client to BT--><path d="M128.79,46 C149.25,46 183.51,46 213.78,46 " fill="none" id="Client-to-BT" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="218.99,46,209.99,42,213.99,46,209.99,50,218.99,46" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="54" x="146.75" y="39.4951">Remove()</text><!--MD5=[a2531f00426be942fe55c529d6d7a04e]
-link BT to TB--><path d="M252,65.13 C218.14,91.23 156.01,139.15 122.1,165.3 " fill="none" id="BT-TB" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="69" x="183.5" y="131.9951">Check open</text><!--MD5=[db06d5436d3370ac98eaeed4eaf978d2]
-link BT to BAT--><path d="M292.63,65.13 C316.15,90.01 358.39,134.71 383.69,161.48 " fill="none" id="BT-to-BAT" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="387.3,165.3,384.0252,156.0115,383.8656,161.6661,378.211,161.5065,387.3,165.3" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="53" x="359.5" y="131.9951">Untrack()</text><!--MD5=[de68e8184bd64218e2c79e24a1b0d28a]
-reverse link TB to BAT--><path d="M162.01,184.5 C207.91,184.5 270.38,184.5 320.42,184.5 " fill="none" id="TB-backto-BAT" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="156.78,184.5,165.78,188.5,161.78,184.5,165.78,180.5,156.78,184.5" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="127" x="175" y="177.9951">CustomizerRemoved()</text><!--MD5=[94eec27b364eedefe4260f9931564d8a]
-link TB to BTC--><path d="M98.5,203.7 C98.5,223.97 98.5,256.76 98.5,278.83 " fill="none" id="TB-to-BTC" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="98.5,283.92,102.5,274.92,98.5,278.92,94.5,274.92,98.5,283.92" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="101" x="99.5" y="247.9951">RemovedBundle()</text><!--MD5=[4f86465f41e9d776fd178bbabba72e6b]
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="327px" preserveAspectRatio="none" style="width:514px;height:327px;background:#FFFFFF;" version="1.1" viewBox="0 0 514 327" width="514px" zoomAndPan="magnify"><defs/><g><!--MD5=[0ba5ee7700168656dc1b457c6fe9fdac]
+entity Client--><g id="elem_Client"><ellipse cx="103.5" cy="14" fill="#F1F1F1" rx="8" ry="8" style="stroke:#181818;stroke-width:0.5;"/><path d="M103.5,22 L103.5,49 M90.5,30 L116.5,30 M103.5,49 L90.5,64 M103.5,49 L116.5,64 " fill="none" style="stroke:#181818;stroke-width:0.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="36" x="85.5" y="80.0332">Client</text></g><!--MD5=[12e922f5689a4b39af25c0eb21e26788]
+entity BT--><g id="elem_BT"><rect fill="#F1F1F1" height="37.6094" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="113" x="227" y="25.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="237" y="50.0332">BundleTracker</text></g><!--MD5=[92e1b8d0a4b2a37ccd7fcd96c5dfe02c]
+entity TB--><g id="elem_TB"><rect fill="#F1F1F1" height="37.6094" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="116" x="40.5" y="161.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="96" x="50.5" y="186.0332">TrackedBundle</text></g><!--MD5=[bf47ed657672796465dc76c4ef1ad49d]
+entity BAT--><g id="elem_BAT"><rect fill="#F1F1F1" height="37.6094" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="168" x="335.5" y="161.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="148" x="345.5" y="186.0332">BundleAbstractTracked</text></g><!--MD5=[6815a7c98912f1a3feb5ab6a43f68320]
+entity BTC--><g id="elem_BTC"><rect fill="#F1F1F1" height="37.6094" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="183" x="7" y="280"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="163" x="17" y="304.5332">BundleTrackerCustomizer</text></g><g id="elem_GMN12"><path d="M331.5,277.5 L331.5,320.2031 A0,0 0 0 0 331.5,320.2031 L507.5,320.2031 A0,0 0 0 0 507.5,320.2031 L507.5,287.5 L497.5,277.5 L423.5,277.5 L419.5,199.7 L415.5,277.5 L331.5,277.5 A0,0 0 0 0 331.5,277.5 " fill="#FEFFDD" style="stroke:#181818;stroke-width:0.5;"/><path d="M497.5,277.5 L497.5,287.5 L507.5,287.5 L497.5,277.5 " fill="#FEFFDD" style="stroke:#181818;stroke-width:0.5;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="155" x="337.5" y="295.9951">Removed Bundle from map</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="93" x="337.5" y="312.3467">Increment count</text></g><!--MD5=[6d60a2609ab0a1c9580d799ef3a81eb5]
+link Client to BT--><g id="link_Client_BT"><path d="M121.75,44.5 C145.01,44.5 186.4,44.5 221.49,44.5 " fill="none" id="Client-to-BT" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="226.62,44.5,217.62,40.5,221.62,44.5,217.62,48.5,226.62,44.5" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="69" x="139.75" y="37.9951">1: Remove()</text></g><!--MD5=[a2531f00426be942fe55c529d6d7a04e]
+link BT to TB--><g id="link_BT_TB"><path d="M258.55,63.57 C223.24,89.15 159.06,135.63 123.65,161.29 " fill="none" id="BT-TB" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="84" x="186.5" y="127.9951">2: Check open</text></g><!--MD5=[db06d5436d3370ac98eaeed4eaf978d2]
+link BT to BAT--><g id="link_BT_BAT"><path d="M301.84,63.57 C326.58,87.95 370.6,131.32 397.22,157.55 " fill="none" id="BT-to-BAT" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="401.01,161.29,397.4188,152.1192,397.4531,157.776,391.7964,157.8102,401.01,161.29" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="68" x="368.5" y="127.9951">3: Untrack()</text></g><!--MD5=[de68e8184bd64218e2c79e24a1b0d28a]
+reverse link TB to BAT--><g id="link_TB_BAT"><path d="M161.67,180.5 C211.29,180.5 280.85,180.5 335.22,180.5 " fill="none" id="TB-backto-BAT" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="156.63,180.5,165.63,184.5,161.63,180.5,165.63,176.5,156.63,180.5" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="142" x="175" y="173.9951">4: CustomizerRemoved()</text></g><!--MD5=[94eec27b364eedefe4260f9931564d8a]
+link TB to BTC--><g id="link_TB_BTC"><path d="M98.5,199.7 C98.5,219.97 98.5,252.76 98.5,274.83 " fill="none" id="TB-to-BTC" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="98.5,279.92,102.5,270.92,98.5,274.92,94.5,270.92,98.5,279.92" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="116" x="99.5" y="243.9951">5: RemovedBundle()</text></g><!--MD5=[84c91103197e1af79b8149e9ec8e2bf2]
 @startuml manrembundle_diagram
 :Client: as Client
 
@@ -19,11 +19,11 @@ rectangle "TrackedBundle" as TB
 rectangle "BundleAbstractTracked" as BAT
 rectangle "BundleTrackerCustomizer" as BTC
 
-Client -> BT : Remove()
-BT -d- TB : Check open
-BT -> BAT : Untrack()
-TB <- BAT : CustomizerRemoved()
-TB -d-> BTC : RemovedBundle()
+Client -> BT : 1: Remove()
+BT -d- TB : 2: Check open
+BT -> BAT : 3: Untrack()
+TB <- BAT : 4: CustomizerRemoved()
+TB -d-> BTC : 5: RemovedBundle()
 
 note bottom of BAT : Removed Bundle from map\nIncrement count
 
@@ -38,18 +38,18 @@ rectangle "TrackedBundle" as TB
 rectangle "BundleAbstractTracked" as BAT
 rectangle "BundleTrackerCustomizer" as BTC
 
-Client -> BT : Remove()
-BT -d- TB : Check open
-BT -> BAT : Untrack()
-TB <- BAT : CustomizerRemoved()
-TB -d-> BTC : RemovedBundle()
+Client -> BT : 1: Remove()
+BT -d- TB : 2: Check open
+BT -> BAT : 3: Untrack()
+TB <- BAT : 4: CustomizerRemoved()
+TB -d-> BTC : 5: RemovedBundle()
 
 note bottom of BAT : Removed Bundle from map\nIncrement count
 
 
 @enduml
 
-PlantUML version 1.2022.0(Tue Jan 11 11:16:42 EST 2022)
+PlantUML version 1.2022.5(Sat Apr 30 06:55:52 EDT 2022)
 (GPL source distribution)
 Java Runtime: Java(TM) SE Runtime Environment
 JVM: Java HotSpot(TM) 64-Bit Server VM

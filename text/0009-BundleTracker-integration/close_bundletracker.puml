@@ -8,14 +8,14 @@ rectangle "BundleContext" as BC
 rectangle "BundleAbstractTracked" as BAT
 rectangle "BundleTrackerCustomizer" as BTC
 
-Client -> BT : Close()
-BT <-d- BTP : Get listener and TrackedBundle
-BT <-d- TB : Wait for customizers
-BT -> TB : Close()
-BT - BC : Remove listener
+Client -> BT : 1: Close()
+BT <-d- BTP : 2: Get listener and TrackedBundle
+BT <-d- TB : 3: Wait for customizers
+BT -> TB : 4: Close()
+BT - BC : 5: Remove listener
 
-TB -d-> BAT : Untrack() on bundles
-BAT -> TB : CustomizerRemoved() on bundles
-TB -> BTC : Call user-defined RemovedBundle()
+TB -d-> BAT : 6: Untrack() on bundles
+BAT -> TB : 7: CustomizerRemoved() on bundles
+TB -> BTC : 8: Call user-defined RemovedBundle()
 
 @enduml

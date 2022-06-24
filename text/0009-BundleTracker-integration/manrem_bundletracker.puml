@@ -8,11 +8,11 @@ rectangle "TrackedBundle" as TB
 rectangle "BundleAbstractTracked" as BAT
 rectangle "BundleTrackerCustomizer" as BTC
 
-Client -> BT : Remove()
-BT -d- TB : Check open
-BT -> BAT : Untrack()
-TB <- BAT : CustomizerRemoved()
-TB -d-> BTC : RemovedBundle()
+Client -> BT : 1: Remove()
+BT -d- TB : 2: Check open
+BT -> BAT : 3: Untrack()
+TB <- BAT : 4: CustomizerRemoved()
+TB -d-> BTC : 5: RemovedBundle()
 
 note bottom of BAT : Removed Bundle from map\nIncrement count
 
