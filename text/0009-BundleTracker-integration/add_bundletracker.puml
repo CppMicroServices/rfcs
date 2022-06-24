@@ -9,7 +9,7 @@ rectangle "TrackedBundle" as TB
 rectangle "BundleAbstractTracked" as BAT
 rectangle "BundleTrackerCustomizer" as BTC
 
-BE -> BL : 1: Intercept event
+BE -> BL : 1: Passed into listener
 BL -> TB : 2: BundleChanged()
 TB -> BAT : 3: Track()
 TB <- BAT : 4: CustomizerAdding()

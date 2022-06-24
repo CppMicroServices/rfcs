@@ -429,26 +429,26 @@ Once a `BundleTracker` is opened, there are API methods to gain information and 
 
 To implement the `BundleTrackerCustomizer` methods, there are two options that have the same effect:
 
-- Implementing a concrete subclass of `BundleTrackerCustomizer` and passing a `std::shared_ptr` to an instance into the `BundleTracker` constructor.
-- Subclassing `BundleTracker` and overriding the `BundleTrackerCustomizer` methods, then passing in a `nullptr` to the `BundleTracker` constructor.
+- Subclassing `BundleTrackerCustomizer`, constructing it as a `std::shared_ptr` instance, and passing it into the `BundleTracker` constructor.
+- Subclassing `BundleTracker` and overriding the `BundleTrackerCustomizer` methods.
 
-The `BundleTrackerCustomizer` methods offer the ability to create and manage custom objects to be tracked (the pointer returned from `AddingBundle(const Bundle&, const BundleEvent&)` will be passed into the other methods when called on the same `Bundle`). Additionally, if a `NULL` is returned, the object will not be tracked by the `BundleTracker`.
+The `BundleTrackerCustomizer` methods offer the ability to create and manage custom objects to be tracked (the object returned from `AddingBundle(const Bundle&, const BundleEvent&)` will be passed into the other methods when called on the same `Bundle`). Additionally, if a `nullptr` is returned, the object will not be tracked by the `BundleTracker`.
 
 The three callbacks are called under the following conditions:
 
 `AddingBundle`:
 
-- A `Bundle` enters a state covered by the `stateMask`, and is not currently being tracked.
+- An untracked `Bundle` enters a state covered by the `stateMask`.
 
 `RemovedBundle`:
 
-- A `Bundle` that is currently being tracked enters a state not covered by the `stateMask`.
-- A `Bundle` is removed manually using `Remove()`
-- A `Bundle` is currently being tracked when the `Close()` method is called on the `BundleTracker` (or when the `BundleTracker` goes out of scope).
+- A tracked `Bundle` enters a state not covered by the `stateMask`.
+- A `Bundle` is removed manually using `Remove()`.
+- When `BundleTracker::Close()` is called or the `BundleTracker` goes out of scope when `Bundle`s are being tracked.
 
 `ModifiedBundle`:
 
-- A `Bundle` enters a state covered by the `stateMask`, and is currently being tracked.
+- A tracked `Bundle` enters a state covered by the `stateMask`.
 
 #### Extending a BundleTracker
 
@@ -458,18 +458,20 @@ The [OSGi specification](http://docs.osgi.org/specification/osgi.core/7.0.0/util
 ****
 ### Overview
 
-The `BundleTracker` is implemented as part of of the core framework for CppMicroservices, leveraging existing constructs to listen for fired `BundleEvent` objects and maintaining the map of tracked objects.
+The `BundleTracker` is part of the CppMicroservices core framework, leveraging existing constructs to listen for fired `BundleEvent` objects and maintaining the map of tracked objects.
 
-The `BundleTracker` uses a pointer-to-implementation pattern to hide data members and implementation details from the user. This information is contained in `BundleTrackerPrivate`, which has a one-to-one relationship with the `BundleTracker` through a `std::unique_ptr`. This construct in turn owns an instance of the `TrackedBundle`, which subclasses `BundleAbstractTracked` and handles tracking operations while the `BundleTracker` is open.
+The `BundleTracker` uses a pointer-to-implementation pattern to hide data members and implementation details from the user. This information is contained in `BundleTrackerPrivate`, which has a one-to-one relationship with the `BundleTracker` through a `std::unique_ptr`. This construct in turn owns an instance of the `TrackedBundle`, which subclasses `BundleAbstractTracked` and handles tracking operations while the `BundleTracker` is open. Since `BundleTrackerPrivate` and `TrackedBundle` are both template classes, however, their implementations must be listed in header files which can be seen by users. A "detail" header subfolder is used as a convention to tell users that the implementation classes are subject to change and are not part of the API.
 
-The customization scheme comes from a back pointer from the `TrackedBundle` class. When a `BundleTrackerCustomizer` is provided by the user, the pointer points to it. When `BundleTrackerCustomizer` is NULL when constructed, it points to the `BundleTracker` itself to use the default or overridden methods.
+The customization scheme comes from a back pointer from the `TrackedBundle` class. When a `BundleTrackerCustomizer` is provided by the user, the pointer points to it. When `BundleTrackerCustomizer` is `nullptr` when constructed, it points to the `BundleTracker` itself to use the default or overridden methods.
+
+The constructor for `BundleTracker` takes a `std::shared_ptr` to a `BundleTrackerCustomizer` instance. This guarantees that the lifetime of the `BundleTrackerCustomizer` is scoped to that of the `BundleTracker` object. This is inconsistent with the current `ServiceTracker` specification, which uses a raw pointer. In the future, the `ServiceTracker` should be amended to follow this convention.
 
 It is worth noting that the API for `BundleTracker` is different from the current implementation of the `ServiceTracker`, which still uses a raw pointer for the `ServiceTracker` constructor's `ServiceTrackerCustomizer` argument. In the future, the `ServiceTracker` API should be adapted to function like the new `BundleTracker` API to make the lifetime of the `ServiceTrackerCustomizer` more explicit.
 ### Core Framework Interactions
 
 The `BundleTracker` uses the following existing constructs in its implementation:
 
-- `BundleListener`: The listener intercepts `Bundle` state change events to be processed by the `BundleTracker`.
+- `BundleListener`: The listener is notified about `Bundle` state change events to be processed by the `BundleTracker`.
 - `BundleContext`: The context is used for registering the listener, and listing the known bundles to add during initialization.
 - `BundleAbstractTracked`: This class is used to manage the tracking map for the `ServiceTracker`. It is reused for the `BundleTracker`.
 
@@ -532,7 +534,7 @@ The `TrackedBundle` class subclasses `BundleAbstractTracked` and `TrackedBundleL
 **Responsibilities:**
 
 1. Define the inherited customizer method wrappers as calling the user `BundleTrackerCustomizer` methods.
-2. Define the top-level `BundleChanged` function to be called by the `BundleListener`. This method contains the business logic of deciding which customizer to call based on the current state of the tracking map, the state mask, and the intercepted `BundleEvent`.
+2. Define the top-level `BundleChanged` function to be called by the `BundleListener`. This method contains the business logic of deciding which customizer to call based on the current state of the tracking map, the state mask, and the received `BundleEvent`.
 3. Keep a tracking map (implementation handled by parent class `BundleAbstractTracked`).
 4. Provide a wait function so the `BundleTracker` can delay closing until the customizer methods return.
 
@@ -571,7 +573,7 @@ Since the `BundleTracker` is not a feature exposed in a beginner's workflow, it 
 ## Drawbacks
 ****
 
-There will be inconsistency in API and implementation details between the `BundleTracker` and the `ServiceTracker`, which could create some confusion for users. Additionally, since the `BundleTracker` is built upon a *synchronous* event listener, it allows the user to slow the framework by doing non-trivial work in callbacks.
+There will be inconsistency in API and implementation details between the `BundleTracker` and the `ServiceTracker`, which could create some confusion for users. Additionally, since the `BundleTracker` is built upon a *synchronous* event listener, it allows the user to slow the framework by doing non-trivial work in callbacks. However, the existing `ServiceTracker` has the same problem.
 
 ## Alternatives
 ****
