@@ -11,11 +11,11 @@ This document describes the design and integration of the `BundleTracker` into t
 ## Motivation
 ****
 
-It is useful to be able to react to state changes in bundles. The core framework offers a `BundleListener` to do this, but it is limited in its functionality on its own.
+It is useful to be able to react to state changes in bundles. The core framework offers a `BundleListener` to do this, but it is limited in its functionality.
 
 The main issue with the `BundleListener` is that it only gives the user information on the bundle state changes _after_ the listener is registered, not the full history of bundle states. Therefore, the user will not find out about any bundles that have been in a certain state since before the `BundleListener` was registered. The `BundleTracker`, on the other hand, provides the full history of states for bundles (initial, transitory, and current).
 
-To discover this prior information without a `BundleTracker`, a user might loop over the previously installed bundles before starting the `BundleListener`. In a multithreaded context however, this creates synchronization problems that are non-trivial to solve. Since bundles can be installed or uninstalled at any time, it is possible for a bundle added by the user's loop to be uninstalled before the listener is registered. That state change gets missed using this workaround.
+To discover this prior information without a `BundleTracker`, a user might loop over the previously installed bundles before starting the `BundleListener`. In a multithreaded context, this creates synchronization problems that are non-trivial to solve. Since bundles can be installed or uninstalled at any time, it is possible for a bundle added by the user's loop to be uninstalled before the listener is registered. That state change gets missed using this workaround.
 
 Currently, Declarative Services (DS) works around the lack of a `BundleTracker` using a method similar to the one described above. In the `SCRActivator`, DS registers a `BundleListener`with a callback to respond to changes in bundle states. Then, it loops through the active bundles in the `BundleContext` to manually trigger the same callback on them. This workaround will find bundles started before the listener is registered, but creates other problems. Namely, if a bundle is started in between these two operations, it could cause the callback to be triggered twice on that bundle.
 
@@ -95,7 +95,7 @@ PP4: Currently, there is not a method of tracking custom objects alongside bundl
 <tbody>
 <tr class="odd">
 <td>R1_Tracking</td>
-<td>The solution must be able to start after bundles are started, while constructing a record of current and previous bundle states and avoiding duplicate callback invocations.</td>
+<td>The solution must be able to start after bundles are started, while constructing a record of current and previous bundle states and avoiding duplicate callback invocations or missed callbacks.</td>
 <td>PP1, PP2</td>
 <td>Must have</td>
 </tr>
@@ -406,7 +406,7 @@ public:
 
 #### Creating a BundleTracker
 
-In this API, the `BundleTracker` has a template argument `T`, which corresponds to the wrapper object type. This defaults to `Bundle` if no wrapper object is used. The `BundleTracker` constructor takes three arguments:
+The `BundleTracker` has a template argument `T` in this API that corresponds to the wrapper object type. This defaults to `Bundle` if no wrapper object is used. The `BundleTracker` constructor takes three arguments:
 
 - The `BundleContext` from which the tracker shall be created.
 - An unsigned 32-bit integer as a mask of states, where all of the active bits correspond to Bundle states that will be tracked. The `CreateStateMask` method is defined to simplify the creation of these masks
@@ -419,8 +419,8 @@ Once the `BundleTracker` is constructed, `Open()` is called to begin the trackin
 Once a `BundleTracker` is opened, there are API methods to gain information and monitor bundles:
 
 - `GetBundles()` returns the `Bundle` objects currently being tracked.
-- `GetObject(Bundle)` returns the custom object paired to a `Bundle`.
-- `GetTracked()` returns all of the bundles and custom objects as an unordered map.
+- `GetObject(Bundle)` returns the custom object paired to a `Bundle`. In the default case (`T` = `Bundle`), this returns the same `Bundle`.
+- `GetTracked()` returns all of the bundles and custom objects as an unordered map. In the default case (`T` = `Bundle`), this maps from `Bundle`s` to themselves.
 - `IsEmpty()` tells the client whether bundles are being tracked.
 - `Size()` returns the number of currently tracked bundles.
 - `GetTrackingCount()` returns a tracking number that ticks up every time the `BundleTracker` changes, allowing for comparisons over time.
@@ -458,24 +458,24 @@ The [OSGi specification](http://docs.osgi.org/specification/osgi.core/7.0.0/util
 ****
 ### Overview
 
-The `BundleTracker` is part of the CppMicroservices core framework, leveraging existing constructs to listen for fired `BundleEvent` objects and maintaining the map of tracked objects.
+The `BundleTracker` is part of the CppMicroservices core framework. It leverages existing constructs to listen for fired `BundleEvent` objects and maintaining the map of tracked objects.
 
-The `BundleTracker` uses a pointer-to-implementation pattern to hide data members and implementation details from the user. This information is contained in `BundleTrackerPrivate`, which has a one-to-one relationship with the `BundleTracker` through a `std::unique_ptr`. This construct in turn owns an instance of the `TrackedBundle`, which subclasses `BundleAbstractTracked` and handles tracking operations while the `BundleTracker` is open. Since `BundleTrackerPrivate` and `TrackedBundle` are both template classes, however, their implementations must be listed in header files which can be seen by users. A "detail" header subfolder is used as a convention to tell users that the implementation classes are subject to change and are not part of the API.
+The `BundleTracker` uses a PIMPL pattern to hide data members and implementation details from the user. This information is contained in `BundleTrackerPrivate` that has a one-to-one relationship with the `BundleTracker` through a `std::unique_ptr`. This class in turn owns an instance of the `TrackedBundle` that subclasses `BundleAbstractTracked` and handles tracking operations while the `BundleTracker` is open. The lifetime of the `TrackedBundle` object is scoped between the `BundleTracker::Open()` and `BundleTracker::Close()` method calls. Since `BundleTrackerPrivate` and `TrackedBundle` are both template classes, their implementations must be listed in header files that are exposed to users. A "detail" header subfolder is used as a convention to tell users that the implementation classes are subject to change and are not part of the API.
 
-The customization scheme comes from a back pointer from the `TrackedBundle` class. When a `BundleTrackerCustomizer` is provided by the user, the pointer points to it. When `BundleTrackerCustomizer` is `nullptr` when constructed, it points to the `BundleTracker` itself to use the default or overridden methods.
+Customization of the `BundleTracker` is achieved via a back pointer from the `TrackedBundle` class. The pointer points to the `BundleTracker` itself to use the default implementations of the methods when a user-provided `BundleTrackerCustomizer` is not provided; if one is provided, the pointer instead points to that.
 
 The constructor for `BundleTracker` takes a `std::shared_ptr` to a `BundleTrackerCustomizer` instance. This guarantees that the lifetime of the `BundleTrackerCustomizer` is scoped to that of the `BundleTracker` object. This is inconsistent with the current `ServiceTracker` specification, which uses a raw pointer. In the future, the `ServiceTracker` should be amended to follow this convention.
 
-It is worth noting that the API for `BundleTracker` is different from the current implementation of the `ServiceTracker`, which still uses a raw pointer for the `ServiceTracker` constructor's `ServiceTrackerCustomizer` argument. In the future, the `ServiceTracker` API should be adapted to function like the new `BundleTracker` API to make the lifetime of the `ServiceTrackerCustomizer` more explicit.
+It is worth noting that the API for `BundleTracker` is different from the current implementation of the `ServiceTracker` as the `ServiceTracker` uses a raw pointer for the constructor's `ServiceTrackerCustomizer` argument. The `ServiceTracker` should be adapted to function like the `BundleTracker` API proposed here to scope lifetime of the `ServiceTrackerCustomizer` to that of the `ServiceTracker`.
 ### Core Framework Interactions
 
-The `BundleTracker` uses the following existing constructs in its implementation:
+The `BundleTracker` uses the following existing classes in its implementation:
 
 - `BundleListener`: The listener is notified about `Bundle` state change events to be processed by the `BundleTracker`.
 - `BundleContext`: The context is used for registering the listener, and listing the known bundles to add during initialization.
 - `BundleAbstractTracked`: This class is used to manage the tracking map for the `ServiceTracker`. It is reused for the `BundleTracker`.
 
-The `BundleTracker` itself is part of the core CppMicroservices framework.
+The `BundleTracker` is part of the core CppMicroservices framework.
 
 ### Class Design
 
@@ -485,7 +485,7 @@ The following illustrates the class diagram for the `BundleTracker`:
 
 #### BundleTrackerCustomizer
 
-The `BundleTrackerCustomizer` is an interface that is defined in the API section. Since all of its methods are pure virtual, it contains no implementation and exists to be subclassed by `BundleTracker` and by users.
+The `BundleTrackerCustomizer` is an interface that is defined in the API section. Since all of its methods are pure virtual, it contains no implementation and is intended to be subclassed by `BundleTracker` and by users.
 
 #### BundleTracker
 
@@ -499,7 +499,7 @@ The `BundleTracker` is what the user instantiates to track bundles. It contains 
 
 **Concurrency Note:**
 
-This class itself does not have locking since it contains no data, but grabs locks for `TrackedBundle` and `BundleTrackerPrivate` when doing synchronized work.
+This class has no locks of its own since it contains no data, but grabs locks for `TrackedBundle` and `BundleTrackerPrivate` when doing synchronized work.
 
 #### BundleTrackerPrivate
 
