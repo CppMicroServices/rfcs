@@ -278,11 +278,11 @@ public:
      * @param bundle The Bundle being added to the BundleTracker.
      * @param event the BundleEvent which was caught by the BundleTracker.
      *
-     * @return The object to be tracked for the specified Bundle object or nullptr to avoid tracking the Bundle.
+     * @return The object to be tracked for the specified Bundle object or std::nullopt to avoid tracking the Bundle.
      *
      * @see BundleTrackerCustomizer:AddingBundle(const Bundle&, const BundleEvent&)
      */
-    T AddingBundle(const Bundle& bundle, const BundleEvent& event);
+    std::optional<T> AddingBundle(const Bundle& bundle, const BundleEvent& event);
 
     /**
      * Called when a Bundle is modified that is being tracked by this BundleTracker
@@ -367,11 +367,11 @@ public:
      * @param bundle The Bundle being added to the BundleTracker.
      * @param event the BundleEvent which was caught by the BundleTracker. Can be null.
      *
-     * @return The object to be tracked for the specified Bundle object or nullptr to avoid tracking the Bundle.
+     * @return The object to be tracked for the specified Bundle object or std::nullopt to avoid tracking the Bundle.
      *
      * @see BundleTrackerCustomizer:AddingBundle(Bundle, BundleEvent)
      */
-    virtual T AddingBundle(const Bundle& bundle, const BundleEvent& event) = 0;
+    virtual std::optional<T> AddingBundle(const Bundle& bundle, const BundleEvent& event) = 0;
 
     /**
      * Called when a Bundle is modified that is being tracked by this BundleTracker.
@@ -432,7 +432,7 @@ To implement the `BundleTrackerCustomizer` methods, there are two options that h
 - Subclassing `BundleTrackerCustomizer`, constructing it as a `std::shared_ptr` instance, and passing it into the `BundleTracker` constructor.
 - Subclassing `BundleTracker` and overriding the `BundleTrackerCustomizer` methods.
 
-The `BundleTrackerCustomizer` methods offer the ability to create and manage custom objects to be tracked (the object returned from `AddingBundle(const Bundle&, const BundleEvent&)` will be passed into the other methods when called on the same `Bundle`). Additionally, if a `nullptr` is returned, the object will not be tracked by the `BundleTracker`.
+The `BundleTrackerCustomizer` methods offer the ability to create and manage custom objects to be tracked (the object returned from `AddingBundle(const Bundle&, const BundleEvent&)` will be passed into the other methods when called on the same `Bundle`). Additionally, if a `std::nullopt` is returned, the object will not be tracked by the `BundleTracker`.
 
 The three callbacks are called under the following conditions:
 
@@ -562,7 +562,7 @@ This object is stored as an atomic shared pointer in `BundleTrackerPrivate` to p
 #### Closing BundleTracker
 ![Closed](0009-BundleTracker-integration/close_diagram.svg)
 
-## How we teach this
+## How We Teach This
 ****
 The `BundleTracker` concept is best presented as a parallel to the `ServiceTracker`, which already exists and has the same customizer and extender patterns. A relevant difference between the constructs besides what is being tracked, is the method of filtering. Services offer class names and filters to target certain services. On the contrary, the `BundleTracker` uses a bit mask for `Bundle` states. This difference should be explained in comparing the `BundleTracker` to the `ServiceTracker`.
 
@@ -578,13 +578,25 @@ There will be inconsistency in API and implementation details between the `Bundl
 ## Alternatives
 ****
 
+### Handling the Default Unextended Case
+
 In the preparation of the `BundleTracker` a number of different strategies for handling both the extended (`T` is defined as a non-`Bundle` type) and unextended (default) variants were proposed:
 
-1. Not wrapping the tracked type in `std::shared_ptr` by default: this removes the issue of storing a shared pointer to a `Bundle` object, but no longer allows the implementation to subclass `BundleAbstractTracked` without modification.
+1. **(CHOSEN)** Not wrapping the tracked type in `std::shared_ptr` by default: this removes the issue of storing a shared pointer to a `Bundle` object, but no longer allows the implementation to subclass `BundleAbstractTracked` without modification.
 
 2. Using variadic templates: This would allow for overloading methods for the extended vs. the default cases, but creates complexity and removes the ability for the user to choose whether to track a `Bundle` in the default case (the null or not-null return from `AddingBundle`). Overloading the callbacks also deviates from the OSGi spec.
 
 3. Do not implement the `BundleTracker`: while a workaround already exists in DeclarativeServices that works most of the time, it is not guaranteed to continue working as the use of it grows over time. Fixing the race in the DeclarativeServices implementation requires a `BundleTracker`.
+
+### Value-type Return from AddingBundle
+
+The lack of a `std::shared_ptr` wrapper for tracked objects in the `BundleTracker` creates a challenge for `AddingBundle` in the `BundleTrackerCustomizer`. In the OSGi specification, users can return either an object reference or a null reference from `AddingBundle` to indicate whether to track or not track the object. This maps to `std::shared_ptr` and `nullptr` in the `ServiceTracker`, but tracked objects in the `BundleTracker` are value-types and not pointers by default. To address this issue, the following solutions were proposed:
+
+1. **(CHOSEN)** Using `std::optional`: `std::optional` is a C++17 feature that allows the user to encode a either a value or a `std::nullopt`. These two states for the optional allow for the user to either return an object or decide not to track the object by returning `std::nullopt`. This maps naturally to the OSGi spec and requires no additional work for clients to adapt their objects for tracking.
+
+2. Requiring override to operator `bool()`: If operator `bool()` is required to be an assessment of object validity (meaning all valid objects must evaluate to `true`), it can be used to decide whether to track objects. If a user does not want to track a `Bundle`, they return an invalid object from `AddingBundle`. This places unnecessary requirements upon the users of `CppMicroServices` however, and is less straightforward than `std::optional`.
+
+3. Using predicate lambdas: By allowing the user to provide their own function to the `AddingBundle` return value, they can choose their own logic for deciding whether to track an object. This is cumbersome since the actual decision is moved out of the `AddingBundle`s function body. It is also a violation of the OSGi spec.
 
 ## Unresolved questions
 ****
