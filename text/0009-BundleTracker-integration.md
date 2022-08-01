@@ -1,5 +1,5 @@
 - Start Date: 2022-05-25
-- RFC PR: (in a subsequent commit to the PR, fill me with the PR's URL)
+- RFC PR: [BundleTracker RFC#18](https://github.com/CppMicroServices/rfcs/pull/18)
 - CppMicroServices Issue: [CppMicroServices/CppMicroServices#100](https://github.com/CppMicroServices/CppMicroServices/issues/100)
 
 # Integration of BundleTracker into Core Framework
@@ -208,7 +208,7 @@ public:
      * @param bundle The Bundle paired with the object
      * @return The custom object paired with the given Bundle or null if the Bundle is not being tracked.
      */
-    T GetObject(const Bundle& bundle);
+    std::optional<T> GetObject(const Bundle& bundle);
 
     /**
      * Returns an unordered map from all of the currently tracked Bundles to their custom objects.

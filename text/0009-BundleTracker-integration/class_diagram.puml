@@ -9,20 +9,20 @@ package cppmicroservices {
         + Open() : void
         + Close() : void
         + GetBundles() : std::vector<Bundle>
-        + GetObject(const Bundle&) : TrackedParamType
+        + GetObject(const Bundle&) : std::optional<TrackedParamType>
         + GetTracked() : std::unordered_map<Bundle, T>
         + GetTrackingCount() : int
         + IsEmpty() : bool
         + Remove(const Bundle&) : bool
         + Size() : size_t
-        + AddingBundle(const Bundle&, const BundleEvent&): TrackedParamType
+        + AddingBundle(const Bundle&, const BundleEvent&): std::optional<TrackedParamType>
         + ModifiedBundle(const Bundle&, const BundleEvent&, TrackedParamType): void
         + RemovedBundle(const Bundle&, const BundleEvent&, TrackedParamType): void
     }
     interface "BundleTrackerCustomizer" as BTC<T> {
-        + AddingBundle(const Bundle&, const BundleEvent&) : TrackedParamType 
-        + modifiedBundle(const Bundle&, const BundleEvent&, TrackedParamType) : void
-        + removedBundle(const Bundle&, const BundleEvent&, TrackedParamType) : void
+        + AddingBundle(const Bundle&, const BundleEvent&) : std::optional<TrackedParamType> 
+        + ModifiedBundle(const Bundle&, const BundleEvent&, TrackedParamType) : void
+        + RemovedBundle(const Bundle&, const BundleEvent&, TrackedParamType) : void
     }
     
     package detail {
@@ -32,20 +32,23 @@ package cppmicroservices {
             + listenerToken : ListenerToken
             + trackedBundle : Atomic<std::shared_ptr<TrackedBundle<TTT>>>
             + Tracked() : std::shared_pointer<TrackedBundle<TTT>>
-            - q_func() : std::weak_ptr<BundleTracker<T>>
-            - q_ptr : std::weak_ptr<BundleTracker<T>>
+            + GetInitialBundles(uint32_t stateMask) : std::vector<Bundle>
+            + GetBundles_unlocked(std::vector<Bundle>&, TrackedBundle<TTT>* t) const : void
+            - q_func() : BundleTracker<T>*
+            - q_func() const : const BundleTracker<T>*
+            - q_ptr : BundleTracker<T>*
         }
         interface "TrackedBundleListener" as TBL {
             + BundleChanged(const BundleEvent&) : void
         }
         class "TrackedBundle" as TB<TTT> {
             - latch : CounterLatch
-            - bundleTracker : std::weak_ptr<BundleTracker<T>>
-            - customizer : std::weak_ptr<BundleTrackerCustomizer<T>>
+            - bundleTracker : BundleTracker<T>*
+            - customizer : BundleTrackerCustomizer<T>*
 
             - BundleChanged(const BundleEvent&) : void
             - Modified() : void
-            - CustomizerAdding(const Bundle&, const BundleEvent&) : TrackedParamType
+            - CustomizerAdding(const Bundle&, const BundleEvent&) : std::optional<TrackedParamType>
             - CustomzierModified(const Bundle&, const BundleEvent&, TrackedParamType) : void
             - CustomzierRemoved(const Bundle&, const BundleEvent&, TrackedParamType) : void
         
@@ -59,12 +62,12 @@ package cppmicroservices {
             + Untrack(S, R) : void
             + Size_unlocked() : std::size_t
             + IsEmpty_unlocked() : bool
-            + GetCustomizedObject_unlocked(S) : TrackedParamType
+            + GetCustomizedObject_unlocked(S) : std::optional<TrackedParamType>
             + GetTracked_unlocked(std::vector~<S>&) : void
             + Modified() : void
             + GetTrackingCount() : int
             + CopyEntries_unlocked(TrackingMap&) : void
-            + CustomizerAdding(S, R&) : TrackedParamType
+            + CustomizerAdding(S, R&) : std::optional<TrackedParamType>
             + CustomzierModified(S, R&, TrackedParamType&) : void
             + CustomzierRemoved(S, R&, TrackedParamType&) : void
             + TrackAdding(S, R) : void
