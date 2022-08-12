@@ -1,6 +1,6 @@
 - Start Date: 2021-01-04
 - RFC PR: https://github.com/CppMicroServices/rfcs/pull/17
-- CppMicroServices Issue: 
+- CppMicroServices Issue: n/a
 
 # CppMicroServices Security: Bundle Validation
 
