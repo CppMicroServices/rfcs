@@ -10,7 +10,7 @@ Currently, the freestanding `GetBundleContext` function generally does not work 
 
 ## Motivation
 
-As Declarative Services is a layer on top of the Core Framework, developers most likely would not expect features of the CF to stop working when using it. The incompatibility between `GetBundleContext` and DS also does not always occur, and is not noted in the documentation. From a bundle developer's perspective, this is a bug in CppMicroservices.
+As Declarative Services is a layer on top of the Core Framework, developers most likely would not expect features of the CF like `GetBundleContext` to stop working when using DS. This issue also does not always occur, and is not noted in the documentation. From a bundle developer's perspective, this is a bug in CppMicroServices.
 
 ## Detailed design
 
@@ -24,7 +24,7 @@ The data storage and its accessor functions that allow `GetBundleContext` to wor
 
 The immediate bundle loader already has the necessary logic for initializing this data storage, but it is guarded by a conditional that it should not be. The resolution for this component is to simply pull the initialization outside of that conditional. (`BundlePrivate::Start0`)
 
-As the lazy bundle loader completely lacks initialization code, it will need to be copied from the immediate bundle loader and be placed such that it runs once, after the object file is loaded into memory and before the bundle activator is run. (`scrimpl::GetComponentCreatorDeletors`)
+As the lazy bundle loader completely lacks initialization code, it will need to be copied from the immediate bundle loader and be placed such that it runs once, after the bundle is loaded into memory but before the bundle activator is run. (`scrimpl::GetComponentCreatorDeletors`)
 
 If initialization fails, for example because the symbols do not exist in the bundle, an error will be logged and initialization will continue. The bundle signature check should prevent corrupted bundles from loading. Not failing will allow existing DS bundles that were built before this fix to still be loaded and used.
 
@@ -33,13 +33,12 @@ Tests for the DS Code Generation changes will be added to `SCRCodegenTests`, and
 ## How we teach this
 
 1. A brief explanation of this resolution will be included in the changelog.
-2. Documentation will be updated to note that the use of `CPPMICROSERVICES_INITIALIZE_BUNDLE` with DS is not permitted.
-> TODO: are the contents of the error message sufficient for the developer to deduce that they must remove this macro?
+2. Documentation will be updated to note that the use of `CPPMICROSERVICES_INITIALIZE_BUNDLE` with DS is not permitted, and will result in multiple definition linker errors for "_us_bundle_context_instance" symbols.
 
 ## Drawbacks
 
-1. Because the contents of the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro are always inserted into the bundle, if the bundle developer has already included this macro, they will encounter a multiple definition error during compilation.
-> If the multiple definition error message is found to be insufficient, additional steps may need to be taken here.
+1. Because the contents of the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro are always inserted into the bundle, if the bundle developer has already included this macro, they will encounter a multiple definition error during linking.
+2. The linker error messages are described in terms of implementation details, making the cause unclear to the bundle developer.
 
 ## Alternatives
 
@@ -47,5 +46,4 @@ Tests for the DS Code Generation changes will be added to `SCRCodegenTests`, and
 2. Catastrophically failing when a bundle without the symbols needed for `GetBundleContext` to function would provide an early sign to bundle developers that their bundle file was corrupted, or that an error occurred in the Declarative Services Code Generation Tool. However, this would cause some existing bundles to stop working, which is not optimal. The bundle signature check should catch corrupted bundles without the need to trigger a failure here.
 
 ## Unresolved questions
-
-
+- With the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro no longer used in DS, should `cppmicroservices_init.cpp` be omitted entirely, or is there a remaining use of the file?
