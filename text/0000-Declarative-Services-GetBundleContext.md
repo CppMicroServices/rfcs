@@ -1,12 +1,12 @@
 - Start Date: 2023-09-18
-- RFC PR: (in a subsequent commit to the PR, fill me with the PR's URL)
+- RFC PR: https://github.com/CppMicroServices/rfcs/pull/20
 - CppMicroServices Issue: https://github.com/CppMicroServices/CppMicroServices/issues/491
 
 # Supporting GetBundleContext inside Declarative Services
 
 ## Summary
 
-Currently, the freestanding `GetBundleContext` function generally does not work when used inside a declarative service. This is for two reasons: the necessary data is usually not present in the bundle object, and even when present, that data is often not initialized. This RFC is for the resolution of these two deficiencies.
+Currently, the freestanding `GetBundleContext` function generally does not work when used inside a declarative service. This is for two reasons: the supporting content is usually not added to the bundle object, and even when present, it is often never set up at runtime. This RFC is for the resolution of these two deficiencies.
 
 ## Motivation
 
@@ -16,13 +16,13 @@ As Declarative Services is a layer on top of the Core Framework, developers most
 
 Declarative Services offers two benefits that are relevant to this issue: it generates boilerplate code for the user, and it allows lazy loading to optimize memory usage. Unfortunately, some things were missed when implementing these features. Specifically:
 
-1. Use of the macro that provides data storage for `GetBundleContext` is discouraged when using Declarative Services, but its functionality has not been replaced.
-2. A logic error in the immediate bundle loader means that this data storage is not initialized unless `"bundle.activator"` is set to `true` in the bundle manifest.
-3. The lazy bundle loader, which is the default loader, does not initialize this data storage under any circumstances.
+1. Use of the macro that provides the pointer `GetBundleContext` retrieves is discouraged when using Declarative Services, but its functionality has not been replaced.
+2. A logic error in the immediate bundle loader means that this pointer is never assigned to unless `"bundle.activator"` is set to `true` in the bundle manifest.
+3. The lazy bundle loader, which is the default loader, does not set the pointer under any circumstances.
 
-The data storage and its accessor functions that allow `GetBundleContext` to work are provided when the user adds the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro to their bundle code (`BundleInitialization.h`). While this is required without DS, our current documentation shows it not being used with DS. Because the DS Code Generation Tool already provides a facility for inserting code into the bundle, the tool will be modified to insert the necessary code, effectively providing the contents of the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro for the developer automatically.
+The global `BundleContextPrivate` pointer and its accessor functions that allow `GetBundleContext` to work are provided when the user adds the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro to their bundle code (`BundleInitialization.h`). While this is required without DS, our current documentation shows it not being used with DS. Because the DS Code Generation Tool already provides a facility for inserting code into the bundle, the tool will be modified to insert the necessary code, providing the contents of the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro for the developer automatically.
 
-The immediate bundle loader already has the necessary logic for initializing this data storage, but it is guarded by a conditional that it should not be. The resolution for this component is to simply pull the initialization outside of that conditional. (`BundlePrivate::Start0`)
+The immediate bundle loader already has the necessary logic for initializing the context pointer, but it is guarded by a conditional that it should not be. The resolution for this component is to simply pull the initialization outside of that conditional. (`BundlePrivate::Start0`)
 
 As the lazy bundle loader completely lacks initialization code, it will need to be copied from the immediate bundle loader and be placed such that it runs once, after the bundle is loaded into memory but before the bundle activator is run. (`scrimpl::GetComponentCreatorDeletors`)
 
