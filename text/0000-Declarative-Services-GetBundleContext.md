@@ -6,7 +6,13 @@
 
 ## Summary
 
-Currently, the freestanding `GetBundleContext` function generally does not work when used inside a declarative service. This is for two reasons: the supporting content is usually not added to the bundle object, and even when present, it is often never set up at runtime. This RFC is for the resolution of these two deficiencies.
+Currently, when used inside a declarative service, the freestanding `GetBundleContext` function only works under the following specific circumstances:
+
+1. The bundle developer uses the CPPMICROSERVICES_INITIALIZE_BUNDLE macro, even though our documentation does not advise its use
+2. The bundle is set to load immediately, which is not the default
+3. The bundle has a bundle activator, which is not always needed
+
+Under other circumstances, either the supporting content for `GetBundleContext` is not added to the bundle object, or it is never set up at runtime. This RFC is for the resolution of these two deficiencies, so that the function can always be used.
 
 ## Motivation
 
@@ -46,4 +52,3 @@ Tests for the DS Code Generation changes will be added to `SCRCodegenTests`, and
 2. Catastrophically failing when a bundle without the symbols needed for `GetBundleContext` to function would provide an early sign to bundle developers that their bundle file was corrupted, or that an error occurred in the Declarative Services Code Generation Tool. However, this would cause some existing bundles to stop working, which is not optimal. The bundle signature check should catch corrupted bundles without the need to trigger a failure here.
 
 ## Unresolved questions
-- With the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro no longer used in DS, should `cppmicroservices_init.cpp` be omitted entirely, or is there a remaining use of the file?
