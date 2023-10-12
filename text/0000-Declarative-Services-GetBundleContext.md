@@ -20,7 +20,7 @@ As Declarative Services is a layer on top of the Core Framework, developers most
 
 ## Detailed design
 
-Declarative Services offers two benefits that are relevant to this issue: it generates boilerplate code for the user, and it allows lazy loading to optimize memory usage. Unfortunately, some things were missed when implementing these features. Specifically:
+Declarative Services offers two benefits that are relevant to this issue: it removes the need for common boilerplate code in the bundle, and it allows lazy loading to optimize memory usage. Unfortunately, some things were missed when implementing these features. Specifically:
 
 1. Use of the macro that provides the pointer `GetBundleContext` retrieves is discouraged when using Declarative Services, but its functionality has not been replaced.
 2. A logic error in the immediate bundle loader means that this pointer is never assigned to unless `"bundle.activator"` is set to `true` in the bundle manifest.
