@@ -6,7 +6,7 @@
 
 ## Summary
 
-Currently, when used inside a declarative service, the freestanding `GetBundleContext` function only works under the following specific circumstances:
+Currently, when used inside a declarative service (DS), the freestanding `GetBundleContext` function only works under the following specific circumstances:
 
 1. The bundle developer uses the CPPMICROSERVICES_INITIALIZE_BUNDLE macro, even though our documentation does not advise its use
 2. The bundle is set to load immediately, which is not the default
@@ -16,7 +16,7 @@ Under other circumstances, either the supporting content for `GetBundleContext` 
 
 ## Motivation
 
-As Declarative Services is a layer on top of the Core Framework, developers most likely would not expect features of the CF like `GetBundleContext` to stop working when using DS. This issue also does not always occur, and is not noted in the documentation. From a bundle developer's perspective, this is a bug in CppMicroServices.
+As Declarative Services is a layer on top of the Core Framework (CF), developers most likely would not expect features of the CF like `GetBundleContext` to stop working when using DS. This issue also does not always occur, and is not noted in the documentation. From a bundle developer's perspective, this is a bug in CppMicroServices.
 
 ## Detailed design
 
@@ -28,13 +28,22 @@ Declarative Services offers two benefits that are relevant to this issue: it rem
 
 The global `BundleContextPrivate` pointer and its accessor functions that allow `GetBundleContext` to work are provided when the user adds the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro to their bundle code (`BundleInitialization.h`). While this is required without DS, our current documentation shows it not being used with DS. Because the DS Code Generation Tool already provides a facility for inserting code into the bundle, the tool will be modified to insert the necessary code, providing the contents of the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro for the developer automatically.
 
-The immediate bundle loader already has the necessary logic for initializing the context pointer, but it is guarded by a conditional that it should not be. The resolution for this component is to simply pull the initialization outside of that conditional. (`BundlePrivate::Start0`)
+The necessary infrastructure for initializing the global context pointer is currently only present privately in the CF. As it needs to be invoked both from the CF and from DS, it will be moved to a shared location, and any dependencies on the CF will be severed.
 
-As the lazy bundle loader completely lacks initialization code, it will need to be copied from the immediate bundle loader and be placed such that it runs once, after the bundle is loaded into memory but before the bundle activator is run. (`scrimpl::GetComponentCreatorDeletors`)
+This code will then be used in the following locations to initialize the bundle context pointer:
 
-If initialization fails, for example because the symbols do not exist in the bundle, an error will be logged and initialization will continue. The bundle signature check should prevent corrupted bundles from loading. Not failing will allow existing DS bundles that were built before this fix to still be loaded and used.
+1. Replacing the original code in `BundlePrivate::Start0`, but not changing existing functionality. `GetBundleContext` will continue working for non-DS bundles.
+2. To `scrimpl::GetComponentCreatorDeletors`, ensuring initialization for all DS bundles (with both immediate and delayed loading)
 
-Tests for the DS Code Generation changes will be added to `SCRCodegenTests`, and tests for the bundle loaders will be added to `usDeclarativeServicesTests`.
+The core framework's bundle loader (`BundlePrivate::Start0`), which is also responsible for DS bundles with activators, already has the necessary logic for initializing the context pointer. This logic relies on the `BundleContextPrivate` class and `BundleUtils` functions, which are both private to the CF, so they will be moved to the `util` folder to make them accessible to DS.
+
+To eliminate the dependency of setting the bundle context pointer on `BundleContextPrivate`, the pointed type will be changed to a `BundleContext`. This will result in a change in the setter's binary interface used by the framework.
+
+As the DS bundle loader (`scrimpl::GetComponentCreatorDeletors`) completely lacks initialization code, it will need to be copied from the immediate bundle loader and be placed such that it runs once, immediately after the bundle is loaded into memory. Adjustments may need to be made due to the differences in available data outside the CF.
+
+If initialization fails, for example because the symbols do not exist in the bundle, an error will be logged and initialization will continue. This matches current behavior. The bundle signature check should prevent corrupted bundles from loading.
+
+Tests for the DS Code Generation changes will be implemented by adding to or modifying `SCRCodegenTests`, and tests for bundle initialization will be added to `usDeclarativeServicesTests`. Code generation testing will ensure that the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro and its requisite `#include` are emitted. Bundle initialization testing will ensure that the various ways of accessing the bundle context produce consistent results.
 
 ## How we teach this
 
@@ -45,6 +54,7 @@ Tests for the DS Code Generation changes will be added to `SCRCodegenTests`, and
 
 1. Because the contents of the `CPPMICROSERVICES_INITIALIZE_BUNDLE` macro are always inserted into the bundle, if the bundle developer has already included this macro, they will encounter a multiple definition error during linking.
 2. The linker error messages are described in terms of implementation details, making the cause unclear to the bundle developer.
+3. The bundle context pointer will be changed from a `BundleContextPrivate` to a `BundleContext`, changing setter/getter behavior. This has the potential to cause compatibility issues if the bundle developer updates the framework without recompiling the bundles.
 
 ## Alternatives
 
