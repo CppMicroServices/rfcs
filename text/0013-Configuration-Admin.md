@@ -284,7 +284,7 @@ This is an example of a manifest.json which would conform to the Schema.
     "version": 1,
     "configurations": [
       {
-        "pid": "mw.test",
+        "pid": "test",
         "properties": {
           "exampleProperty": "exampleValue",
           "exampleBool": false,
@@ -294,7 +294,7 @@ This is an example of a manifest.json which would conform to the Schema.
         }         
       },
       {
-        "pid": "mw.testfactory~config1",
+        "pid": "testfactory~config1",
         "properties": {
           "exampleProperty": "exampleValue1",
           "exampleBool": false,
@@ -304,7 +304,7 @@ This is an example of a manifest.json which would conform to the Schema.
         }         
       },
       {
-        "pid": "mw.testfactory~config2",
+        "pid": "testfactory~config2",
         "properties": {
           "exampleProperty": "exampleValue2",
           "exampleBool": false,
