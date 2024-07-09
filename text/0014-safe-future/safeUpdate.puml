@@ -1,20 +1,46 @@
-@startuml addbundle_diagram
+@startuml
+participant Client
+participant ThreadPool
+participant "Task1" as T1
+participant "Task2" as T2
+participant ConfigurationImpl
+participant ConfigurationAdminImpl
+participant Listeners
 
-rectangle "BundleEvent" as BE
-rectangle "BundleListener" as BL
-'rectangle "BundleTracker" as BT
-'rectangle "BundleTrackerPrivate" as BTP
-rectangle "TrackedBundle" as TB
-'rectangle "BundleContext" as BC
-rectangle "BundleAbstractTracked" as BAT
-rectangle "BundleTrackerCustomizer" as BTC
+activate Client
+Client -> ThreadPool : postTask()
+activate ThreadPool
+ThreadPool -> T1 : allocate()
+activate T1
+T1 -> ConfigurationImpl : Update()
+activate ConfigurationImpl
+ConfigurationImpl -> ConfigurationAdminImpl : NotifyConfigurationUpdated()
+activate ConfigurationAdminImpl
+ConfigurationAdminImpl -> ConfigurationAdminImpl : PerformAsync()
+ConfigurationAdminImpl -> ThreadPool : postTask()
+ThreadPool -> ConfigurationAdminImpl : return T2_S_future
+ConfigurationAdminImpl -> ConfigurationImpl : return T2_S_future
+deactivate ConfigurationAdminImpl
+ConfigurationImpl -> T1 : return T2_S_future
+deactivate ConfigurationImpl
+T1 -> T2 : T2_S_future.get()
+T2 -> T1 : timeout
+T1 -> T2 : Task2()
+T2 -> Listeners : notifyUpdated()
+activate Listeners
+Listeners -> T2 : return
+deactivate Listeners
+T2 -> T1 : return void
+T1 -> ThreadPool : finished()
+deactivate T1
 
-BE -> BL : 1: Passed into listener
-BL -> TB : 2: BundleChanged()
-TB -> BAT : 3: Track()
-TB <- BAT : 4: CustomizerAdding()
-TB -d-> BTC : 5: AddingBundle()
-
-note bottom of BAT : Bundle not in map\nEntering state mask\nIncrement count
+note over ThreadPool : T1 deallocated
+ThreadPool -> Client : taskFinished
+ThreadPool -> T2 : allocate()
+activate T2
+T2 -> T2 : checkTaskExecuted()
+T2 -> ThreadPool : finished()
+deactivate T2
+deactivate ThreadPool
 
 @enduml
