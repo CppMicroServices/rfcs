@@ -261,15 +261,11 @@ namespace cppmicroservices::cmimpl
 From a thread allocated to the Threadpool, a client will call `Update()` on a configuration. This update will be posted to the threadpool. In the simplest case of a threadpool size 1, and the old `Update()` API, this will deadlock as shown below.
 
 ```plantuml
-@startuml
 !include 0014-safe-future/unsafeUpdate.puml
-@enduml
 ```
 
 However with the new `Safe` API, this is resolved as follows:
 
 ```plantuml
-@startuml
 !include 0014-safe-future/safeUpdate.puml
-@enduml
 ```
