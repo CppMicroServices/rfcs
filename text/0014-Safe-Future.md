@@ -260,12 +260,17 @@ namespace cppmicroservices::cmimpl
 #### User thread, allocated on a AsyncWorkService thread, calls Update on a configuration
 From a thread allocated to the Threadpool, a client will call `Update()` on a configuration. This update will be posted to the threadpool. In the simplest case of a threadpool size 1, and the old `Update()` API, this will deadlock as shown below.
 
-```plantuml
-!include 0014-safe-future/unsafeUpdate.puml
-```
+<html>
+
+<img src="0014-safe-future/unsafeFut.png" style="width:700px"/>
+
+</html>
+
 
 However with the new `Safe` API, this is resolved as follows:
 
-```plantuml
-!include 0014-safe-future/safeUpdate.puml
-```
+<html>
+
+<img src="0014-safe-future/safeFut.png" style="width:700px"/>
+
+</html>
