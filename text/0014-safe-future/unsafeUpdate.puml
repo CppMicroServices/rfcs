@@ -1,0 +1,20 @@
+@startuml addbundle_diagram
+
+rectangle "BundleEvent" as BE
+rectangle "BundleListener" as BL
+'rectangle "BundleTracker" as BT
+'rectangle "BundleTrackerPrivate" as BTP
+rectangle "TrackedBundle" as TB
+'rectangle "BundleContext" as BC
+rectangle "BundleAbstractTracked" as BAT
+rectangle "BundleTrackerCustomizer" as BTC
+
+BE -> BL : 1: Passed into listener
+BL -> TB : 2: BundleChanged()
+TB -> BAT : 3: Track()
+TB <- BAT : 4: CustomizerAdding()
+TB -d-> BTC : 5: AddingBundle()
+
+note bottom of BAT : Bundle not in map\nEntering state mask\nIncrement count
+
+@enduml
