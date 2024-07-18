@@ -130,6 +130,53 @@ namespace cppmicroservices
 #endif // CPPMICROSERVICES_THREADPOOLSAFEFUTURE_H
 ```
 
+**ThreadpoolSafeFuturePrivate.hpp**
+```c++
+namespace cppmicroservices::cmimpl
+{
+    using ActualTask = std::packaged_task<void(bool)>;
+    using PostTask = std::packaged_task<void()>;
+    class ThreadpoolSafeFuturePrivate
+        : public cppmicroservices::ThreadpoolSafeFuture
+    {
+      public:
+        ThreadpoolSafeFuturePrivate(std::shared_future<void> future,
+                                    std::shared_ptr<std::atomic<bool>> asyncStarted = nullptr,
+                                    std::shared_ptr<ActualTask> task = nullptr);
+        ThreadpoolSafeFuturePrivate() = default;
+
+        // Destructor
+        ~ThreadpoolSafeFuturePrivate() = default;
+
+        ThreadpoolSafeFuturePrivate(ThreadpoolSafeFuturePrivate const& other) = delete;
+        ThreadpoolSafeFuturePrivate& operator=(ThreadpoolSafeFuturePrivate const& other) = delete;
+        ThreadpoolSafeFuturePrivate(ThreadpoolSafeFuturePrivate&& other) noexcept = default;
+        ThreadpoolSafeFuturePrivate& operator=(ThreadpoolSafeFuturePrivate&& other) noexcept = default;
+
+        // Method to get the result
+        void get() const;
+        void wait() const;
+        template <class Rep, class Period>
+        std::future_status
+        wait_for(std::chrono::duration<Rep, Period> const& timeout_duration) const
+        {
+            return future.wait_for(timeout_duration);
+        }
+
+        std::shared_future<void>
+        retrieveFuture()
+        {
+            return future;
+        }
+
+      private:
+        std::shared_future<void> future;
+        std::shared_ptr<std::atomic<bool>> asyncStarted;
+        std::shared_ptr<ActualTask> task;
+    };
+} // namespace cppmicroservices::cmimpl
+```
+
 **Changes to ConfigurationImpl.hpp**
 ```c++
 namespace cppmicroservices::cmimpl
