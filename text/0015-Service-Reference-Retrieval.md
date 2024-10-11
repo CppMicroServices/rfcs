@@ -1,26 +1,25 @@
 - Start Date: 2024-10-10
 - CppMicroServices PR: https://github.com/CppMicroServices/CppMicroServices/pull/1044
 
-# Add an free API in that can retrieve a <code>ServiceObject</code>'s <code>ServiceReference</code> from itself
+# Add an free API in that can retrieve a <code>ServiceReference</code> from a <code>std::shared_ptr\<T\></code> given to the client by the framework
 
 ## Summary
 
-Currently there is no API in the <code>cppmicroservices</code> namespace that can retrieve a <code>ServiceReference</code> from the <code>ServiceObject</code> itself.
+Currently there is no API in the <code>cppmicroservices</code> namespace that can retrieve a <code>ServiceReference</code> from the <code>std::shared_ptr\<T\></code> itself.
 This document discusses need for such API in the particular use case of declarative services (DS) and its possible design/solution.
 
 ## Motivation
 
-Developers using DS rely on DS's SCR (service component runtime) to inject references of services statically at construction or dynamically using the <code>bind</code> and <code>unbind</code> methods. These <code>ServiceObject</code>s can then be used by the client. However, clients often use properties in the Service to store metadata relevant to that service. Those properties, however, are not available to the <code>ServiceObject</code> itself, only via its <code>ServiceReference</code>.
+Developers using DS rely on DS's SCR (service component runtime) to inject services statically at construction or dynamically using the <code>bind</code> and <code>unbind</code> methods. These <code>std::shared_ptr\<T\></code>s can then be used by the client. However, clients often use properties in the Service to store metadata relevant to that service. Those properties, however, are not available to the <code>std::shared_ptr\<T\></code> itself, only via its <code>ServiceReference</code>.
 
-Given this it seems appropriate to have a new method that the client can use to translate a <code>ServiceObject</code> into its <code>ServiceReference</code>.
+Given this it seems appropriate to have a new method that the client can use to translate a <code>std::shared_ptr\<T\></code> into its <code>ServiceReference</code>.
 
 ## Requirements
 
 This API must:
 
-1. take in a <code>ServiceObject\<void\></code> and return the <code>ServiceReference\<void\></code> for that service
-2. take in a <code>ServiceObject\<T\></code> and return the <code>ServiceReference\<T\></code> for that service where <code>T</code> is any class interface
-3. not expose internal <code>ServiceObject</code> implementation details to the user
+1. take in a <code>ServiceObject\<T\></code> and return the <code>ServiceReference\<T\></code> for that service where <code>T</code> is any class interface
+2. not expose internal implementation details to the user
 
 ## Detailed design
 
@@ -55,9 +54,9 @@ ServiceReferenceFromService(std::shared_ptr<T> const& s)
 
 ```
 
-This API will take the <code>ServiceObject</code> and first verify that it was a <code>ServiceObject</code> created by the CppMicroServices framework.
+This API will take the <code>std::shared_ptr\<T\></code> and first verify that it was a <code>std::shared_ptr\<T\></code> created by the CppMicroServices framework.
 
-If it is valid, it will return the original <code>ServiceReference</code> for that <code>ServiceObject</code>.
+If it is valid, it will return the original <code>ServiceReference</code> for that <code>std::shared_ptr\<T\></code>.
 
 A typical usage workflow could be as below, in the static constructor of a service <code>ServiceImpl</code> which depends on a service of type <code>ServiceInterface2</code>.
 
@@ -75,7 +74,7 @@ ServiceImpl::ServiceImpl(std::shared_ptr<ServiceInterface2> const& dep) {
 
 ## Implementation
 
-In order to solve this problem, we have to somehow embed metadata into the <code>ServiceObject</code> about its <code>ServiceReference</code> in a way that is inaccessible directly by clients.
+In order to solve this problem, we have to somehow embed metadata into the <code>std::shared_ptr\<T\></code> about its <code>ServiceReference</code> in a way that is inaccessible directly by clients.
 
 One solution that we have found is to embed a custom deleter into the <code>std::shared_ptr\<ServiceHolder\></code> and retrieve that using the <code>std::get_deleter</code> functionality.
 
