@@ -10,7 +10,7 @@ This document discusses need for such API in the particular use case of declarat
 
 ## Motivation
 
-Developers using DS rely on DS's SCR (service component runtime) to inject references of services statically at construction or dynamically using the <code>bind</code> and <code>unbind</code> methods. These <code>ServiceObject</code>s can then be used by the client. However, clients often use properties in the Service to store metadata relevant to that service. Those properties, however, are not available to the <code>ServiceObject</code> itself, only its reference.
+Developers using DS rely on DS's SCR (service component runtime) to inject references of services statically at construction or dynamically using the <code>bind</code> and <code>unbind</code> methods. These <code>ServiceObject</code>s can then be used by the client. However, clients often use properties in the Service to store metadata relevant to that service. Those properties, however, are not available to the <code>ServiceObject</code> itself, only via its <code>ServiceReference</code>.
 
 Given this it seems appropriate to have a new method that the client can use to translate a <code>ServiceObject</code> into its <code>ServiceReference</code>.
 
@@ -64,7 +64,7 @@ A typical usage workflow could be as below, in the static constructor of a servi
 ```c++
 ServiceImpl::ServiceImpl(std::shared_ptr<ServiceInterface2> const& dep) {
     // get the reference
-    ServiceReference<ServiceInterface2> depRef = cppmicroservices::ServiceReferenceFromService<ServiceInterface>(dep);
+    ServiceReference<ServiceInterface2> depRef = cppmicroservices::ServiceReferenceFromService(dep);
     // get a property from the ServiceReference's metadata
     auto someProp = cppmicroservices::any_cast<std::string>(retSRef.GetProperty("someProp"));
     // use that property
@@ -79,7 +79,7 @@ In order to solve this problem, we have to somehow embed metadata into the <code
 
 One solution that we have found is to embed a custom deleter into the <code>std::shared_ptr\<ServiceHolder\></code> and retrieve that using the <code>std::get_deleter</code> functionality.
 
-This objects that would allow this can be seen below:
+The objects that would allow this can be seen below:
 
 ```c++
 
@@ -230,4 +230,3 @@ Most clients will not need this functionality. Configurations can be injected in
 ## Drawbacks
 
 - We are using custom deleters in a way that they were not intended to be used.
-- We are writing the code to delete the memory manually rather than allowing <code>std::shared_ptr</code> to do it for us.
