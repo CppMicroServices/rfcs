@@ -301,8 +301,8 @@ namespace cppmicroservices::service::cm
         * The ManagedServiceFactory interface is the interface that service factories
         * should implement to receive updates from the ConfigurationAdmin implementation
         * with the Configurations for the services that the Factory will provide. The
-        * service.factoryPid ServiceProperty of the ManagedServiceFactory (or the
-        * component.name which is injected by DeclarativeServices if no service.factoryPid
+        * service.pid ServiceProperty of the ManagedServiceFactory (or the
+        * component.name which is injected by DeclarativeServices if no service.pid
         * is provided) will be used to select all Configurations applicable to this factory.
         * Per the OSGi Spec, the ManagedServiceFactory is intended to be used when multiple
         * instances of a given Service will exist in the Framework, but each with different
