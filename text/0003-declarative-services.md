@@ -629,11 +629,6 @@ See <a href="Declarative_Services_RFA#Dependency_Injection" title="wikilink">Dep
                       "id": "/properties/scr/properties/components/items/properties/references/items/properties/policy-option",
                       "type": "string"
                     },
-                    "scope": {
-                      "default": "Singleton",
-                      "id": "/properties/scr/properties/components/items/properties/references/items/properties/scope",
-                      "type": "string"
-                    },
                     "target": {
                       "id": "/properties/scr/properties/components/items/properties/references/items/properties/target",
                       "type": "string"
@@ -735,8 +730,7 @@ schema:
                 "cardinality": "1..1",                              // Cardinality of the reference
                 "policy": "static",                                 // Binding policy for the reference
                 "policy-option": "reluctant",                       // Binding policy option for the reference
-                "target": "(type=file)",                            // LDAP filter for the reference
-                "scope": "bundle"                                   // scope of the reference
+                "target": "(type=file)"                             // LDAP filter for the reference
             }],
             "inject-references": true                               // Specifies whether the references are injected into the component instances
         }]
