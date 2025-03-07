@@ -6,7 +6,7 @@
 ## Summary
 
 In Declarative Services, we support two methods of dynamic targeting using Configuration Admin for factory component instances:
- - Method 1: manual injection into the config using the key value pairs: [<refName>.target, (someLDAP=filter)]
+ - Method 1: manual injection into the config using the key value pairs: [refName.target, (someLDAP=filter)]
  - Method 2: reference to properties within the configuration using string replace in the target within manifest:
     - references [{
         name: "someName",
@@ -23,18 +23,18 @@ Users want to be able to inject properties into their targets at the time of con
 
 Prior to creation of a factory instance when the required config is injected, Declarative Services parses the configuration properties and the targets.
 
-If <refname>.target is a property in the config, that reference's target property is replaced with the value from the config. 
+If refName.target is a property in the config, that reference's target property is replaced with the value from the config. 
 
 If the reference target (from the manifest) uses the "{{keyValue}}" syntax, the value in the injected config at that key replaces the {{keyValue}} within that reference's target. 
 
-If both methods are provided by the reference (ie the original target from the manifest uses {{keyValue}} syntax AND <refname>.target is in the config) then the <refname>.target from the config is used. This behavior prioritizes the OSGI spec, which documents the <refname>.target mechanism. 
+If both methods are provided by the reference (ie the original target from the manifest uses {{keyValue}} syntax AND refName.target is in the config) then the refName.target from the config is used. This behavior prioritizes the OSGI spec, which documents the refName.target mechanism. 
 
 If any of the following conditions are met, the creation of the factory instance will throw:
  - the resulting LDAP filter from either Method 1 or 2 is an invalid filter
  - the key specified in Method 2 does not exist in the injected config
 
 ### Architecturally Significant Design Case
-#### Method 1: direct injection of <refname>.target into Configuration
+#### Method 1: direct injection of refName.target into Configuration
 
 ##### Manifest.json
 ```
@@ -157,7 +157,7 @@ If both of the above methods are used, <b>Method</b> 1 is prioritized
 ```
 
 ##### Resulting Factory Instance Configuration
-In this case we prioritize the <refname>.target in the configuration to align with the OSGI spec
+In this case we prioritize the refName.target in the configuration to align with the OSGI spec
 ```
 {
     "implementation-class": "sample::someService",
