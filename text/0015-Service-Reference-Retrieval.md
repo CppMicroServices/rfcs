@@ -18,7 +18,7 @@ Given this it seems appropriate to have a new method that the client can use to 
 
 This API must:
 
-1. take in a <code>ServiceObject\<T\></code> and return the <code>ServiceReference\<T\></code> for that service where <code>T</code> is any class interface
+1. take in a <code>std::shared_ptr\<T\></code> and return the <code>ServiceReference\<T\></code> for that service where <code>T</code> is any class interface
 2. not expose internal implementation details to the user
 
 ## Detailed design
@@ -31,7 +31,7 @@ This API must:
 * \ingroup MicroServices
 * \ingroup gr_servicereference
 *
-* A method to retrieve a <code>ServiceObject</code>'s original <code>ServiceReference<void></code>
+* A method to retrieve a service object's original <code>ServiceReference<void></code>
 *
 */
 US_Framework_EXPORT ServiceReferenceU ServiceReferenceFromService(std::shared_ptr<void> const& s);
@@ -40,9 +40,9 @@ US_Framework_EXPORT ServiceReferenceU ServiceReferenceFromService(std::shared_pt
 * \ingroup MicroServices
 * \ingroup gr_servicereference
 *
-* A method to retrieve a <code>ServiceObject<T></code>'s original <code>ServiceReference<U></code>
+* A method to retrieve a service object's original <code>ServiceReference<U></code>
 *
-* @tparam T The class type of the <code>ServiceObject</code>
+* @tparam T The class type of the service object
 * @tparam U The class type of the <code>ServiceReference</code>. Defaults to <code>T</code> if not specified.
 */
 template <typename T, typename U = T>
