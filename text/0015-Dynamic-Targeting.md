@@ -16,7 +16,7 @@ In Declarative Services, we support two methods of dynamic targeting using Confi
 
 ## Motivation
 
-Users want to be able to inject properties into their targets at the time of configuration injection. These targets can be determined at run time. By allowing 
+Users want to be able to inject properties into their targets at the time of configuration injection. These targets can be determined at run time. By allowing dynamic construction of targets using only what is in the configuration injected to create the factory instance, users are able to dynamically configure services without needing an intermediary.
 
 ## Detailed design
 ### Functional Design
