@@ -23,15 +23,29 @@ Users want to be able to inject properties into their targets at the time of con
 
 Prior to creation of a factory instance when the required config is injected, Declarative Services parses the configuration properties and the targets.
 
+### Method 1: Old
 If refName.target is a property in the config, that reference's target property is replaced with the value from the config. 
 
-If the reference target (from the manifest) uses the "{{keyValue}}" syntax, the value in the injected config at that key replaces the {{keyValue}} within that reference's target. 
+### Method 2: New
+If the reference target (from the manifest) uses the <b>{{keyValue}}</b> syntax, the value in the injected config at that key replaces the <b>{{keyValue}}</b> within that reference's target. 
 
-If both methods are provided by the reference (ie the original target from the manifest uses {{keyValue}} syntax AND refName.target is in the config) then the refName.target from the config is used. This behavior prioritizes the OSGI spec, which documents the refName.target mechanism. 
+### Prioritization of two methods
+If both methods are provided by the reference (ie the original target from the manifest uses <b>{{keyValue}}</b> syntax AND <b>refName.target</b> is in the config) then the <b>refName.target</b> from the config is used. This behavior prioritizes the OSGI spec, which documents the <b>refName.target</b> mechanism. 
 
 If any of the following conditions are met, the creation of the factory instance will throw:
  - the resulting LDAP filter from either Method 1 or 2 is an invalid filter
  - the key specified in Method 2 does not exist in the injected config
+
+ To support this new functionality, we changed the <b>component.name</b> property:
+
+ ```c++
+// from:
+newMetadata->name = pid;
+// to:
+newMetadata->name = newMetadata->name + "_" + pid;
+```
+
+This new naming ensures that two Service Factory Components that wait on the same config do not both have Service Factory Instances with the same <b>component.name</b> property.
 
 ### Architecturally Significant Design Case
 #### Method 1: direct injection of refName.target into Configuration
