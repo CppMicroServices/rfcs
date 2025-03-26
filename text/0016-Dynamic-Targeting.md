@@ -194,7 +194,7 @@ A brief explanation of this change will be provided in the changelog. Along with
 The primary drawback is that this does NOT follow the OSGI spec. The OSGI spec references the use of injection of <b>\<refName.target\></b> properties into configurations, but does not describe our new mechanism. To manage this, we have decided to give preference to the OSGI mechanism for dynamic targeting and only if that method IS NOT used do we use this secondary method. 
 
 Additionally, we are changing the way the <b>component.name</b> property for a Factory Component Instance is created from <b>\<factoryPID\>~\<factoryInstance\></b> to <b>\<serviceImplName\>_\<factoryPID\>~\<factoryInstance\></b>. This can cause issues for clients that currently rely on the <b>component.name</b> property in a factory instance. However
-1) this is a simple fix
+1) this is a simple fix for downstream authors who rely on <b>component.name</b> requiring only an addition of the implementation class for the factory service
 2) using the <b>component.name</b> as a mechanism for finding services is generally frowned upon because it breaks the idea of decoupled services.
    - If a client wants to depend on a service created by a specific configuration, they should use properties within that config that are injected into the properties of the service NOT the <b>component.name</b> property
 
