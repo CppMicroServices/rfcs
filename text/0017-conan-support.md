@@ -23,14 +23,13 @@ The goal is to support Conan as a first-class distribution channel without break
 
 ### CMake option matrix
 
-Seven `US_USE_SYSTEM_*` cache variables control whether each dependency is resolved externally or from `third_party/`. All default to `OFF`.
+Six `US_USE_SYSTEM_*` cache variables control whether each dependency is resolved externally or from `third_party/`. All default to `OFF`.
 
 | Option | Dependency | Used by | `find_package()` call when ON |
 |---|---|---|---|
 | `US_USE_SYSTEM_BOOST` | Boost (Nowide) | `rc` tool, framework | `Boost 1.74.0 REQUIRED` |
 | `US_USE_SYSTEM_SPDLOG` | spdlog | LogServiceImpl | `spdlog 1.14.1 REQUIRED` |
 | `US_USE_SYSTEM_RAPIDJSON` | RapidJSON | framework, jsonschemavalidator | `rapidjson REQUIRED` |
-| `US_USE_SYSTEM_JSONCPP` | jsoncpp | `rc` tool, SCRCodeGen | `jsoncpp 1.9.5 REQUIRED` |
 | `US_USE_SYSTEM_MINIZ` | miniz | framework, `rc` tool | `miniz 3.0.2 REQUIRED` |
 | `US_USE_SYSTEM_CLI11` | CLI11 | `rc`, change\_namespace, jsonschemavalidator | `CLI11 2.4.1 REQUIRED` |
 | `US_USE_SYSTEM_GTEST` | Google Test | test suite | *(pre-existing, unchanged)* |
@@ -51,20 +50,20 @@ else()
 endif()
 ```
 
-When the option is **OFF**, a header-only IMPORTED INTERFACE target is created pointing at the vendored source. When **ON**, `find_package()` locates the external installation, which already provides the same target name. Some dependencies (jsoncpp, rapidjson) need a fallback alias when the upstream config file uses a different target name:
+When the option is **OFF**, a header-only IMPORTED INTERFACE target is created pointing at the vendored source. When **ON**, `find_package()` locates the external installation, which already provides the same target name. Some dependencies (e.g. rapidjson) need a fallback alias when the upstream config file uses a different target name:
 
 ```cmake
-if(US_USE_SYSTEM_JSONCPP)
-    find_package(jsoncpp REQUIRED)
-    if(NOT TARGET jsoncpp::jsoncpp AND TARGET JsonCpp::JsonCpp)
-        add_library(jsoncpp::jsoncpp ALIAS JsonCpp::JsonCpp)
+if(US_USE_SYSTEM_RAPIDJSON)
+    find_package(rapidjson REQUIRED)
+    if(NOT TARGET rapidjson::rapidjson AND TARGET rapidjson)
+        add_library(rapidjson::rapidjson ALIAS rapidjson)
     endif()
 else()
     # ... vendored path
 endif()
 ```
 
-Downstream `CMakeLists.txt` files are updated to use `target_link_libraries()` against these targets instead of raw `include_directories()` calls. For dependencies that were previously compiled directly into their consumer (miniz compiled into the framework, jsoncpp compiled into `rc` and SCRCodeGen), the source file is conditionally excluded when the system version is used:
+Downstream `CMakeLists.txt` files are updated to use `target_link_libraries()` against these targets instead of raw `include_directories()` calls. For dependencies that were previously compiled directly into their consumer (e.g. miniz compiled into the framework), the source file is conditionally excluded when the system version is used:
 
 ```cmake
 if(NOT US_USE_SYSTEM_MINIZ)
@@ -135,7 +134,6 @@ The Conan recipe (`conanfile.py`) lives in the conan-center-index repository and
 | CLI11 | 2.4.1 | `False` | `False` | Build-tool only |
 | miniz | 3.0.2 | `False` | `True` | Baked into shared lib; must link for static |
 | spdlog | 1.14.1 | `False` | `True` | Same |
-| jsoncpp | 1.9.5 | `False` | `True` | Same |
 | RapidJSON | cci.20220822 | `False` | `True` | Same |
 
 For shared builds, these implementation dependencies are statically linked into the CppMicroServices shared libraries, so consumers don't need them. For static builds, consumers must link them directly.
@@ -148,11 +146,25 @@ deps.set_property("miniz",     "cmake_target_name", "miniz::miniz")
 # ... etc.
 ```
 
-**Component mapping.** `package_info()` defines three component groups:
+**Component mapping.** `package_info()` defines components organized into two conceptual groups, following OSGi v8's split between core and compendium specifications:
 
-- **`framework`** — always present. Maps to the `CppMicroServices` CMake target.
-- **`logservice`** — always present (header-only). Maps to `usLogService`. Separated from the compendium group because it is a pure interface library (abstract classes only, no compiled sources) that is built unconditionally, whereas the other compendium services require both `shared=True` and `with_threading=True`.
-- **Compendium bundles** — only when `shared=True` and `with_threading=True`. Maps DeclarativeServices, ConfigurationAdmin, AsyncWorkService, etc. to their respective CMake targets.
+**Core** (always present):
+- **`framework`** — maps to the `CppMicroServices` CMake target.
+- **`logservice`** — maps to `usLogService`. Header-only interface library, built unconditionally.
+
+**Compendium** (only when `shared=True` and `with_threading=True`):
+
+Compile-time dependencies (consumers link against these for public headers/interfaces):
+- **`servicecomponent`** — maps to `usServiceComponent`.
+- **`asyncworkservice`** — maps to `usAsyncWorkService`.
+- **`eventadmin`** — maps to `usEM`.
+
+Runtime-loaded bundles (no public headers; loaded via `installAndStart()`, not linked):
+- **`declarativeservices`** — maps to `DeclarativeServices`.
+- **`configurationadmin`** — maps to `ConfigurationAdmin`.
+- **`logserviceimpl`** — maps to `LogService`.
+
+These are defined as individual Conan components rather than a single aggregate because consumers need to link against specific compile-time targets (e.g. `usServiceComponent`) independently of the runtime-loaded bundles.
 
 **Boost configuration.** On Unix, Boost is configured as header-only. On Windows, only the `nowide`, `filesystem`, `atomic`, and `system` libraries are built; all others are explicitly disabled to minimize build time.
 
@@ -165,7 +177,7 @@ US_USE_DETERMINISTIC_BUNDLE_BUILDS requires bundled miniz (MINIZ_NO_TIME).
 Set US_USE_SYSTEM_MINIZ=OFF or disable deterministic builds.
 ```
 
-**Dependency version synchronization.** When a vendored dependency is updated in `third_party/`, the corresponding version pin in the Conan recipe must be bumped in the same release. This ensures the vendored and Conan paths remain functionally equivalent. The version pins in the `find_package()` calls should also be updated to match.
+**Dependency version synchronization.** When a vendored dependency is updated in `third_party/`, the corresponding version pin in the Conan recipe must be bumped in the same release. This ensures the vendored and Conan paths remain functionally equivalent. The version pins in the `find_package()` calls should also be updated to match. This is enforced via contributing guidelines (`CONTRIBUTING.rst`) — any PR that updates a vendored dependency must include the corresponding Conan recipe and CMake `find_package()` version updates. Automated enforcement (e.g. a CI check) may be added once the recipe is published to conan-center-index.
 
 **CI for the Conan recipe.** A new CI pipeline will be added to the CppMicroServices GitHub repo to validate the Conan recipe. This will be added once the required CMake changes are merged and included in a tagged release so that the recipe can consume the source archive. Until then, validation is performed manually and through conan-center-index CI upon submission.
 
@@ -177,9 +189,9 @@ Set US_USE_SYSTEM_MINIZ=OFF or disable deterministic builds.
 |---|---|---|
 | All `US_USE_SYSTEM_*` OFF | Legacy vendored build (default) | Yes |
 | All `US_USE_SYSTEM_*` ON | Conan / full system dependency build | Yes |
-| Mixed | Individual options toggled independently | Not tested in CI; supported but at user's risk |
+| Mixed | Individual options toggled independently | Not tested in CI; not officially supported |
 
-The two CI-covered configurations represent the primary use cases: self-contained build from source and package-manager-managed build. Mixed configurations are expected to work (the options are designed to be independent) but are not validated in CI due to the combinatorial explosion.
+The two CI-covered configurations represent the primary use cases: self-contained build from source and package-manager-managed build. Mixed configurations are not officially supported — the options may work independently but maintainers are not committed to fixing breakages in mixed-mode builds.
 
 ## How we teach this
 
@@ -207,7 +219,7 @@ The `CppMicroServicesHelpers.cmake` module is automatically included by Conan's 
 
 - **Added CMake complexity.** The root `CMakeLists.txt` grows by ~60 lines of if/else blocks. Each dependency has two code paths that must be kept consistent. This is the cost of supporting both vendored and external dependencies simultaneously.
 - **Version drift risk.** The vendored copies and the versions specified in the Conan recipe may diverge over time. A bug fixed in vendored miniz might not be present in the Conan-specified version, or vice versa. The mitigation is to keep the Conan recipe's version pins reasonably close to what is vendored.
-- **Testing surface.** The matrix of ON/OFF combinations across seven options is large (128 combinations).
+- **Testing surface.** The matrix of ON/OFF combinations across six options is large (64 combinations).
 - **Conan-specific shims.** `CppMicroServicesHelpers.cmake` and the target name alignment in the recipe are Conan-specific concerns that live partly in the upstream repo and partly in conan-center-index. Changes to the CMake install layout require coordinated updates.
 
 ## Alternatives
