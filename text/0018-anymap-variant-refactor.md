@@ -1,16 +1,16 @@
 # Replace AnyMap's manual union with std::variant
 
-The `any_map` / `AnyMap` class uses a hand-rolled discriminated union (a `union` of heap-allocated map pointers plus a `map_type` enum tag) with manual lifecycle management (`new`/`delete`, `copy_from`/`move_from`/`destroy`). The iterators mirror this: a union of heap-allocated STL iterator pointers with 460 lines of manual memory management. We will replace this with `std::variant`-based inline storage, collapse the class hierarchy, and remove ~850 lines of boilerplate.
+The `any_map` / `AnyMap` class used a hand-rolled discriminated union (a `union` of heap-allocated map pointers plus a `map_type` enum tag) with manual lifecycle management (`new`/`delete`, `copy_from`/`move_from`/`destroy`). The iterators mirrored this: a union of heap-allocated STL iterator pointers with 460 lines of manual memory management. This was replaced with `std::variant`-based inline storage, a collapsed class hierarchy, a `ci_unordered_map` wrapper class for type-distinct dispatch, and encapsulated access via `get<T>()` — removing ~845 lines of boilerplate.
 
 ## Status
 
-Proposed
+Accepted (implemented 2026-06-02)
 
 ## Considered Options
 
 ### A: std::variant inline storage (chosen)
 
-Replace `union { ordered_any_map*; unordered_any_map*; unordered_any_cimap*; } map` with `std::variant<ordered_any_map, unordered_any_map, unordered_any_cimap>`. Iterators become a small class wrapping `std::variant<oiter, uoiter, uociiter>`. The `any_map` base class is collapsed into `AnyMap`, with `using any_map = AnyMap` for source compatibility.
+Replace `union { ordered_any_map*; unordered_any_map*; unordered_any_cimap*; } map` with `std::variant<ordered_any_map, unordered_any_map, unordered_any_cimap>`. The case-insensitive map is wrapped in a `ci_unordered_map` class to provide distinct types for both the map variant and iterator variant (required on Apple libc++ where hash map iterators are type-aliased). Iterators become a small class wrapping `std::variant<oiter, uoiter, uociiter>` with `std::visit` dispatch. The `any_map` base class is collapsed into `AnyMap`, with `using any_map = AnyMap` for source compatibility. The internal `map_` storage is private, exposed through a type-safe `get<T>()` accessor.
 
 ### B: Keep union, modernize lifecycle only
 
@@ -22,16 +22,18 @@ Replace the union with a `std::unique_ptr<MapBase>` where `MapBase` has virtual 
 
 ## Key Decisions
 
-| Decision              | Choice                                     | Rationale                                                         |
-|-----------------------|--------------------------------------------|-------------------------------------------------------------------|
-| Storage               | Inline variant                             | Eliminates heap allocation, pointer indirection, manual lifecycle |
-| Iterators             | Variant-wrapping class                     | Same public API, no heap alloc per iterator, ~50 lines vs ~460    |
-| TypeChecked functions | Removed                                    | Callers use `std::get<T>()` on the public variant directly        |
-| Class hierarchy       | Collapsed; `using any_map = AnyMap`        | One using-alias in tests/downstream; no behavior difference       |
-| Friend access         | Removed                                    | Variant is public; `Properties`/`LDAPExpr` use `std::get<T>()`    |
-| map_type enum         | Retained                                   | Construction tag; `GetType()` maps `variant.index()` to enum      |
-| Export                | Class-level `US_Framework_EXPORT` retained | Simplicity over micro-optimization                                |
-| ABI                   | Breaking change; full rebuild required     | Acceptable in monorepo/source-built contexts                      |
+| Decision              | Choice                                        | Rationale                                                         |
+|-----------------------|-----------------------------------------------|-------------------------------------------------------------------|
+| Storage               | Inline variant                                | Eliminates heap allocation, pointer indirection, manual lifecycle |
+| Iterators             | Variant-wrapping class                        | Same public API, no heap alloc per iterator, ~50 lines vs ~460    |
+| TypeChecked functions | Removed                                       | Callers use `get<T>()` accessor on the AnyMap instance            |
+| Class hierarchy       | Collapsed; `using any_map = AnyMap`           | One using-alias in tests/downstream; no behavior difference       |
+| CI map type           | `ci_unordered_map` wrapper class              | Distinct type in variant; distinct iterator types for dispatch     |
+| Encapsulation         | Private `map_` with `get<T>()` accessor       | Type-safe access without exposing internal variant directly        |
+| map_type enum         | Retained                                      | Construction tag; `GetType()` uses `std::visit`/`if constexpr`    |
+| Dispatch              | `std::visit` with generic lambdas             | Replaces all switch statements; compiler optimizes to jump table   |
+| Export                | Class-level `US_Framework_EXPORT` retained    | Simplicity over micro-optimization                                |
+| ABI                   | Breaking change; full rebuild required        | Acceptable in monorepo/source-built contexts                      |
 
 ## Performance Analysis
 
@@ -115,9 +117,42 @@ Impact: Neutral to faster.
 
 The refactor is a strict performance improvement on every operation that matters, with the only "cost" being a larger stack footprint that is irrelevant in practice.
 
+## Implementation Notes
+
+### ci_unordered_map wrapper class
+
+On Apple's libc++, `std::unordered_map<K, V>::iterator` and `std::unordered_map<K, V, CustomHash, CustomEq>::iterator` resolve to the same underlying `__hash_map_iterator` type. This prevents type-based variant deduction for both the map variant and the iterator variant.
+
+Solution: `ci_unordered_map` is a wrapper class (not a type alias) around `std::unordered_map<std::string, Any, any_map_cihash, any_map_ciequal>`. It provides its own `iterator` and `const_iterator` wrapper classes that are distinct types from the raw STL iterators. This makes all three types in `map_variant` genuinely distinct, and all iterator types in the iterator variant genuinely distinct, enabling clean `std::visit` dispatch without `std::in_place_index`.
+
+### Private map_ with get<T>() accessor
+
+The `map_variant map_` member is private. External code accesses the underlying map via:
+
+```cpp
+template <typename MapT> MapT const& get() const;
+template <typename MapT> MapT& get();
+```
+
+This preserves zero-cost direct access (compiles to the same code as `std::get<T>()`) while enforcing encapsulation. Throws `std::bad_variant_access` if the wrong map type is requested.
+
+### GetType() dispatch
+
+Uses `std::visit` with `if constexpr` type dispatch instead of runtime array indexing on `variant.index()`. This is type-safe at compile time and avoids any dependency on variant alternative ordering.
+
 ## Consequences
 
 - All consumers of `AnyMap` must recompile (ABI break).
-- ~35 call sites in `Properties.cpp` and `LDAPExpr.cpp` change from `TypeChecked` calls to `std::get<T>()`.
+- ~14 call sites in `Properties.cpp` and `LDAPExpr.cpp` change from `TypeChecked` calls to `get<T>()` accessor.
 - Downstream MathWorks code (9 files, ~18 references) continues to compile via `using any_map = AnyMap` alias.
 - The `map_type` enum and nested typedefs (`ordered_any_map`, `unordered_any_map`, `unordered_any_cimap`) remain accessible at `AnyMap::`.
+- `unordered_any_cimap` is now a type alias for the `ci_unordered_map` wrapper class (source-compatible with previous usage).
+- Moved-from `AnyMap` is in a valid-but-unspecified state per the C++ standard (no longer UB/crash).
+
+## Actual Results
+
+- **Header**: ~528 → ~367 lines (includes ~100 lines for `ci_unordered_map` wrapper)
+- **Implementation**: ~1304 → ~619 lines (includes ~100 lines serialization unchanged)
+- **Net reduction**: ~845 lines removed
+- **Tests**: 398/398 framework tests pass, 27/27 ctest programs pass
+- **Performance**: No heap allocations for maps or iterators, no pointer indirection
