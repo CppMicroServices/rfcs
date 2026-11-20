@@ -1,5 +1,5 @@
 - Start Date: 2026-11-20
-- RFC PR: (in a subsequent commit to the PR, fill me with the PR's URL)
+- RFC PR: https://github.com/CppMicroServices/rfcs/pull/30
 - CppMicroServices Issue: (none; supersedes the approach in https://github.com/CppMicroServices/CppMicroServices/pull/1028)
 
 # White-box unit tests for the core framework via a shared object library
