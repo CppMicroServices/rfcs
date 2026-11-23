@@ -201,18 +201,30 @@ recommends both, each where it fits:
 
 ### Verification performed
 
-Prototype branch: `fwk-test-infra-refactor` (based on `development` at
-`e6ac4b71`). Windows, MSVC 14.36, x64, Debug:
+Implementation:
+[CppMicroServices#1297](https://github.com/CppMicroServices/CppMicroServices/pull/1297)
+(branch `fwk-test-infra-refactor`, based on `development` at `65fd6472`).
+
+Local verification, Windows, MSVC 14.36, x64, Debug:
 
 | Check | Shared (`BUILD_SHARED_LIBS=ON`) | Static (`BUILD_SHARED_LIBS=OFF`) |
 |---|---|---|
 | `usFrameworkUnitTests` (34 tests) | pass | pass |
-| `usFrameworkTests` | 407/407 pass | 377/377 pass |
+| `usFrameworkTests` | 410/410 pass | 380/380 pass |
 | Unit exe imports `CppMicroServices*.dll` | no (`dumpbin /DEPENDENTS`) | n/a |
 | Shipping DLL exports vs. pristine `development` | identical (553 symbols) | n/a |
 
-Linux and macOS are to be verified by CI before the implementation PR is
-merged (see Unresolved questions).
+Upstream CI on the implementation PR (head `69f0d972`):
+
+| Platform / job | Result |
+|---|---|
+| Linux: ubuntu-22.04 x64 and arm64 (Configurations 0-3), minimum GCC, supported Clang | pass |
+| macOS: macos-15 (Configurations 0-3), macos-latest | pass |
+| Windows: windows-2022/2025 (all configurations, incl. coverage), MinGW-w64 | pass |
+| AddressSanitizer, UndefinedBehaviorSanitizer, CodeQL, MSVC Code Analysis | pass |
+| ThreadSanitizer | `usFrameworkUnitTests` passes; job fails on pre-existing races in `usFrameworkTests`/`usDeclarativeServicesTests`, identical on `development` |
+| macos-14, windows-11-arm | fail on `development` too (retired runner image; MSVC 14.52 ARM64 false-positive C4789 treated as error) |
+| clang-tidy `review` | fails because the review workflow's compile database omits test targets (`gtest/gtest.h` not found). Recent PRs adding test files fail it too; not a required check |
 
 ## How we teach this
 
@@ -284,11 +296,13 @@ same object-library approach for their bundles' internals.
 
 ## Unresolved questions
 
-- **Linux and macOS.** Not yet verified. The main point to check is that
-  `-fvisibility=hidden` plus `CppMicroServices_EXPORTS` in the test executable
-  behaves as on Windows, and that the executable does not interpose symbols
-  for any library it loads (it should not, as it is not linked with
-  `-rdynamic`/`ENABLE_EXPORTS`).
+- **ELF/Mach-O symbol tables.** CI shows the unit tests build and pass on
+  Linux and macOS (see Verification performed), so
+  `-fvisibility=hidden` plus `CppMicroServices_EXPORTS` in the test
+  executable works there. The executable's dynamic symbol table has not
+  been inspected directly; it is not linked with `-rdynamic`/
+  `ENABLE_EXPORTS`, so it is not expected to interpose symbols for any
+  library it loads.
 - **Migration of PR #1028's tests.** Which of its mock-based tests
   (`BundleManifestTest`, `BundleTest`, `MockedEnvironment`) move into
   `usFrameworkUnitTests`, and which of its production changes (`BundleUtils`
