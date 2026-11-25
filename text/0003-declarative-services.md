@@ -414,6 +414,8 @@ elements of a JSON object representing the service component:
 |factory|string|If set to a non-empty string, it indicates that this component is a factory component. This attribute is the factory id for the component. This factory id can be used by a bundle to associate the factory with externally defined information. |No|Empty string|
 |factory-properties|map|These are only used for factory components (factory attribute has a non-empty string). These are the properties that will be registered for the factory component. |No|For factory components, when DS registers the properties for the factory component, DS adds <br>component.name - component name<br>component.factory - component factory id |
 
+The `configuration-policy` and `configuration-pid` elements integrate service components with Configuration Admin. A `configuration-pid` entry of `"$"` is replaced by the component name. How Configuration objects are merged into the component properties, and how configuration updates and deletions affect a component (including the `Modified` method), is specified in [RFC 0008: Integration of Configuration Admin into Declarative Services](0008-configadmin-ds-integration.md).
+
 **service**   
 The service element is a child of the component object and describes the
 service information that is used for service registration.
