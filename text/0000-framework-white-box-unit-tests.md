@@ -220,7 +220,7 @@ Upstream CI on the implementation PR (head `57dcf750`):
 | Platform / job | Result |
 |---|---|
 | Linux: ubuntu-22.04 x64 and arm64 (Configurations 0-3), minimum GCC, supported Clang | pass |
-| macOS: macos-latest (Configurations 0-3, plus deterministic bundles), macos-15 (Configurations 1-3) | pass (macos-15 Configuration 0 still queued at the time of writing) |
+| macOS: macos-15 and macos-latest (Configurations 0-3, plus deterministic bundles) | pass |
 | Windows: windows-2022/2025 (all configurations, incl. coverage), windows-11-arm (Configurations 0-3), MinGW-w64 | pass |
 | AddressSanitizer, UndefinedBehaviorSanitizer, CodeQL, MSVC Code Analysis | pass |
 | codecov (patch and project) | pass |
