@@ -201,7 +201,7 @@ recommends both, each where it fits:
 
 ### Verification performed
 
-Implementation:
+Implementation (merged into `development` as `eb57c592`):
 [CppMicroServices#1297](https://github.com/CppMicroServices/CppMicroServices/pull/1297)
 (branch `fwk-test-infra-refactor`, based on `development` at `2360b208`).
 
