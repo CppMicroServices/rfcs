@@ -685,10 +685,16 @@ If the component author has provided a Modified method then DS will notify it of
 by calling the Modified method. If the service author has not provided a Modified method then the component 
 will be deactivated and reactivated with the new set of Configuration objects. 
 
-If the service author has provided a Modified method the following configuration changes will result in the 
-Modified method being called but will not cause the component to become unsatisfied.
+If the service author has provided a Modified method, the following configuration change does not cause the 
+component to become unsatisfied:
 
    - A Configuration object on which the component is dependent is removed. 
+
+In the current implementation this removal is not delivered to the component at all. DS recomputes the merged 
+configuration properties, but it neither calls the Modified method nor deactivates and reactivates the component. 
+The active component instance keeps the properties of the deleted Configuration object.
+
+> **Note:** this appears to be a bug; see [CppMicroServices#1307](https://github.com/CppMicroServices/CppMicroServices/issues/1307).
 
 In a later release support for changing the following properties in a configuration object may be supported 
 and if so the following changes could result in the component becoming unsatisfied:
@@ -812,20 +818,24 @@ class ConfigurationListener
 {
 public:
 /**
-* Called whenever the Configuration for any service is updated or removed from ConfigurationAdmin,
-* and when the ConfigurationListener is first registered with the Framework, to provide the initial Configuration.
+* Called whenever the Configuration for any service is updated or removed from ConfigurationAdmin.
 */
-virtual void configurationEvent(const ConfigurationEvent& event) noexcept = 0;
-virtual ~ConfigurationListener() = default;
+virtual void configurationEvent(ConfigurationEvent const& event) = 0;
+virtual ~ConfigurationListener() noexcept = default;
 };
 ```
+`configurationEvent` is not `noexcept`. Configuration Admin calls it only when a configuration object is updated 
+or removed. It does not call it when a listener is first registered, so a newly registered listener receives no 
+initial configuration. DS therefore reads the configuration objects that already exist itself, with 
+`ConfigurationAdmin::ListConfigurations`, when a component configuration is initialized (`ComponentConfigurationImpl::Initialize`).
+
 The ConfigurationEvent input parameter in the configurationEvent method has:
 
    - configAdmin is the service reference for the ConfigurationAdmin service that generated the 
      ConfigurationEvent. 
    - type: 
        - CM_DELETED  - the configuration object has been deleted.
-       - CM_UPDATED - the configuration object has been removed.
+       - CM_UPDATED - the configuration object has been updated.
        - CM_LOCATION_CHANGED (out of scope. No support provided)
    - factoryPid - The factory pid for the configuration object which has changed. Takes the form 
      factorycomponentname~instancename. This field must be null if pid is not null.
@@ -840,8 +850,10 @@ When the configurationEvent method of DS's ConfigurationListener implementation 
      all DS processing is complete. If a component needs to be modified as a result of the call, the Modified 
      method has been called.
    - the configurationEvent method is thread-safe and may be called by multiple threads simultaneously.
-   - All exceptions will be trapped by the configurationEvent method and logged. The exceptions that 
-     may be trapped and logged include:
+   - All exceptions are trapped by the configurationEvent method and logged, except
+     `cppmicroservices::SecurityException`, which is logged and then rethrown to Configuration Admin.
+     For a configuration update, Configuration Admin returns it to the caller through the future returned
+     by `Update`. The exceptions that may be trapped and logged include:
         - std::runtime_error If this BundleContext is no longer valid.
         - std::invalid_argument If the config admin service reference specified in the event is no longer valid.
         - std::logic_error If this component has already been unregistered or if it is invalid.
@@ -1006,7 +1018,7 @@ To create an instance of the component the application author will create an Any
 ``` cpp
 //configAdmin variable in this example contains a reference to the Configuration Admin Service.//
 //Start BundleA (details not shown). After starting the bundle the
-// DS state will be UNSATISFIED_REFERENCES. DS has not constructed the sample::ServiceComponent1 service
+// DS state will be UNSATISFIED_REFERENCE. DS has not constructed the sample::ServiceComponent1 service
 // because it is not satisfied. It is waiting for the startup.configuration
 // configuration object to become available.
  
@@ -1020,11 +1032,12 @@ auto configuration = configAdmin->GetConfiguration("startup.configuration");
  
 // The Update method updates the startup.configuration object with the startupProp1 property. A notification
 // is sent to DS telling DS that the startup.configuration object has been updated. The notification
-// is sent asynchronously but the Update method does not return to the caller until DS has finished
-// processing the Update notification.
-configuration->Update(props);  
+// is sent asynchronously and Update returns immediately with a std::shared_future<void>. Waiting on
+// the future (get()) blocks until the notification has been delivered and DS has finished processing it.
+// (SafeUpdate returns a ThreadpoolSafeFuture that can safely be waited on from an AsyncWorkService thread.)
+configuration->Update(props).get();
 ```
-After the execution of the Update method in the previous code snippet, sample::ServiceComponent1 is in the 
+Once the future returned by Update is ready, sample::ServiceComponent1 is in the 
 ACTIVE state. The constructor was called withan AnyMap input parameter containing:
 
    - the component properties. None were included in the manifest.json file but DS always adds component.name and 
@@ -1189,10 +1202,10 @@ cppmicroservices::AnyMap props(
 cppmicroservices::AnyMap::UNORDERED_MAP_CASEINSENSITIVE_KEYS);
 const std::string instanceId{ "instance1" };
 props["uniqueProp"] = instanceId;
-factoryConfig->Update(props);
+factoryConfig->Update(props).get();
  
-// The Update notification is sent asynchronously to DS but Update does not return to
-// the caller until DS has finished it's processing. At this point in time DS has
+// The Update notification is sent asynchronously to DS. Update returns a std::shared_future<void>,
+// and get() blocks until DS has finished its processing. At this point in time DS has
 // finished creating the data structures for the factory instance and has registered
 // the factory instance. The state is SATISFIED. The component instance has not been
 // constructed yet because the immediate attribute is false. DS is waiting for someone
@@ -1313,7 +1326,7 @@ correct but with the following additions.
      processing is complete. If the change to the configuration object results in the Modified method in the component 
      instance being called the Modified method has already been called when the configurationEvent method returns. 
      The configurationEvent method is threadsafe and may be called by more than one thread simultaneously. All exceptions 
-     will be trapped and logged. 
+     are trapped and logged, except `cppmicroservices::SecurityException`, which is logged and rethrown. 
    - ConfigurationManager: Manages the properties for the component and determines whether or not the configuration object 
      dependencies are satisfied. 
 
