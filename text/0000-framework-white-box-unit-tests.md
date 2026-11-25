@@ -203,9 +203,10 @@ recommends both, each where it fits:
 
 Implementation:
 [CppMicroServices#1297](https://github.com/CppMicroServices/CppMicroServices/pull/1297)
-(branch `fwk-test-infra-refactor`, based on `development` at `65fd6472`).
+(branch `fwk-test-infra-refactor`, based on `development` at `2360b208`).
 
-Local verification, Windows, MSVC 14.36, x64, Debug:
+Local verification, Windows, MSVC 14.36, x64, Debug (against the earlier
+base, `65fd6472`; the rebase only brought in CI configuration changes):
 
 | Check | Shared (`BUILD_SHARED_LIBS=ON`) | Static (`BUILD_SHARED_LIBS=OFF`) |
 |---|---|---|
@@ -214,17 +215,30 @@ Local verification, Windows, MSVC 14.36, x64, Debug:
 | Unit exe imports `CppMicroServices*.dll` | no (`dumpbin /DEPENDENTS`) | n/a |
 | Shipping DLL exports vs. pristine `development` | identical (553 symbols) | n/a |
 
-Upstream CI on the implementation PR (head `69f0d972`):
+Upstream CI on the implementation PR (head `57dcf750`):
 
 | Platform / job | Result |
 |---|---|
 | Linux: ubuntu-22.04 x64 and arm64 (Configurations 0-3), minimum GCC, supported Clang | pass |
-| macOS: macos-15 (Configurations 0-3), macos-latest | pass |
-| Windows: windows-2022/2025 (all configurations, incl. coverage), MinGW-w64 | pass |
+| macOS: macos-latest (Configurations 0-3, plus deterministic bundles), macos-15 (Configurations 1-3) | pass (macos-15 Configuration 0 still queued at the time of writing) |
+| Windows: windows-2022/2025 (all configurations, incl. coverage), windows-11-arm (Configurations 0-3), MinGW-w64 | pass |
 | AddressSanitizer, UndefinedBehaviorSanitizer, CodeQL, MSVC Code Analysis | pass |
-| ThreadSanitizer | `usFrameworkUnitTests` passes; job fails on pre-existing races in `usFrameworkTests`/`usDeclarativeServicesTests`, identical on `development` |
-| macos-14, windows-11-arm | fail on `development` too (retired runner image; MSVC 14.52 ARM64 false-positive C4789 treated as error) |
-| clang-tidy `review` | fails because the review workflow's compile database omits test targets (`gtest/gtest.h` not found). Recent PRs adding test files fail it too; not a required check |
+| codecov (patch and project) | pass |
+| clang-tidy `review` (test sources analysed with the test-directory configs) | pass |
+| ThreadSanitizer | `usFrameworkUnitTests` passes; the job fails on pre-existing races in `usFrameworkTests` and `usDeclarativeServicesTests`, the same failures as on `development` |
+
+Three CI problems on `development` that had been failing this PR were fixed
+separately before the rebase:
+
+- [#1298](https://github.com/CppMicroServices/CppMicroServices/pull/1298)
+  replaced the retired `macos-14` runner with `macos-latest`;
+- [#1299](https://github.com/CppMicroServices/CppMicroServices/pull/1299)
+  disabled a false-positive C4789 in MSVC 19.52 for ARM64, which `/WX` had
+  turned into an error on `windows-11-arm`;
+- [#1300](https://github.com/CppMicroServices/CppMicroServices/pull/1300)
+  added test-directory `.clang-tidy` configs and test targets to the
+  clang-tidy review's compile database, which had failed on
+  `gtest/gtest.h` not found.
 
 ## How we teach this
 
